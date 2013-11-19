@@ -1,8 +1,13 @@
-if grep -q ec2-user "/etc/rc.local"; then
+#!/bin/sh
+# Fetch files for benchmark and reboot
+wget -O - https://s3-us-west-1.amazonaws.com/iomz-benchmark/bench.tgz | sudo tar zxv -C /root/
+
+# Overwrite /etc/rc.local for startup script
+if grep -q startbench.sh "/etc/rc.local"; then
   echo "Already loaded"
 else
   sudo cp /etc/rc.local /etc/rc.local.bck
-  echo "/bin/su - -- ec2-user -l -c '/home/ec2-user/startbench.sh'" >> /etc/rc.local
+  sudo sh -c 'echo "/root/startbench.sh" >> /etc/rc.local'
 fi
-wget -O- https://s3-us-west-1.amazonaws.com/iomz-benchmark/bench.tgz | tar zxv
-reboot
+
+sudo reboot

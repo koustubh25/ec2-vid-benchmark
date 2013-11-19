@@ -1,4 +1,5 @@
 # Avoid storing credentials
 .aws/
-.ec2/
-.profile
+.s3cfg
+bench.tgz
+*.264
