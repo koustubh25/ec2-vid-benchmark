@@ -1,0 +1,4 @@
+# Avoid storing credentials
+.aws/
+.ec2/
+.profile
