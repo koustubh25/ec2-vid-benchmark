@@ -52,7 +52,14 @@ rm -fr ~/benchmark/bench*
 cd ~/benchmark
 mkdir -p logs
 chmod +x launchbenchmark.sh
-#curl -O http://www.zumzocken.de/va_x264/elephantsdream_source.264
+if [ ! -e ~/benchmark/elephantsdream_source.264 ]; then
+  curl -O http://www.zumzocken.de/va_x264/elephantsdream_source.264
+fi
+
+while [ ! -e ~/benchmark/elephantsdream_source.264 ]
+do
+  sleep 3
+done
 
 /usr/bin/screen -d -m /usr/bin/time -o ~/benchmark/logs/$ITYPE.log ~/benchmark/launchbenchmark.sh $ITYPE
 
