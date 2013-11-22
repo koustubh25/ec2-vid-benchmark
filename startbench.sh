@@ -79,10 +79,14 @@ ID_JSON=`wget -q -O - http://169.254.169.254/latest/dynamic/instance-identity/do
 IID=`echo $ID_JSON | /usr/bin/jq '.instanceId' | awk -F\" '{print $2}'`
 ITYPE=`echo $ID_JSON | /usr/bin/jq '.instanceType' | awk -F\" '{print $2}'`
 VIRTYPE=`/usr/bin/aws ec2 describe-instances --instance-ids $IID | /usr/bin/jq '.Reservations[].Instances[].VirtualizationType' | awk -F\" '{print $2}'`
+EBSOPT=`/usr/bin/aws ec2 describe-instances --instance-ids $IID | jq '.Reservations[].Instances[].EbsOptimized'`
 #REGION=`echo $ID_JSON | /usr/bin/jq '.region' | awk -F\" '{print $2}'`
 #IMGID=`echo $ID_JSON | /usr/bin/jq '.imageId' | awk -F\" '{print $2}'`
-DIV="_"
-echo "$VIRTYPE$DIV$ITYPE" > ~/InstanceDesc
+if [ $EBSOPT == true ]; then
+  echo "${VIRTYPE}_${ITYPE}_EbsOptimized" > ~/InstanceDesc 
+else
+  echo "${VIRTYPE}_${ITYPE}" > ~/InstanceDesc 
+fi
 IDESC=`cat ~/InstanceDesc`
 
 echo "*** Performing benchmark on \"$IDESC\"..."
@@ -99,11 +103,11 @@ do
 done
 
 # Compress log and put s3
+echo '*** Benchmark finished, upload the logs to the s3 bucket...'
 cd ~/benchmark
 tar zcvf $IDESC.tgz logs/*
 aws s3 cp $IDESC.tgz s3://iomz-benchmark/
 
-echo '*** Benchmark finished, now halting the system!'
+echo '*** Benchmarking script completed, now halting the system...'
 env TZ='America/Los_Angeles' date > ~/finished
-
 halt
