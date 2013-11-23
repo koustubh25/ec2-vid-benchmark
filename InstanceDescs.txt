@@ -1,0 +1,39 @@
+paravirtual_t1.micro(i-b2bf49d6) launched at: 2013-11-23T01:44:19.000Z
+paravirtual_m1.small(i-34e48d50) launched at: 2013-11-23T01:44:22.000Z
+paravirtual_ m1.medium launch failed
+paravirtual_m1.large(i-a4bf49c0) launched at: 2013-11-23T01:44:25.000Z
+paravirtual_m1.xlarge(i-48e48d2c) launched at: 2013-11-23T01:44:27.000Z
+paravirtual_m3.xlarge(i-f347f594) launched at: 2013-11-23T01:44:30.000Z
+paravirtual_m3.2xlarge(i-01788c78) launched at: 2013-11-23T01:44:32.000Z
+paravirtual_m2.xlarge(i-8f1fddf7) launched at: 2013-11-23T01:44:35.000Z
+paravirtual_m2.2xlarge(i-4f569b36) launched at: 2013-11-23T01:44:37.000Z
+paravirtual_m2.4xlarge(i-84811eff) launched at: 2013-11-23T01:44:40.000Z
+paravirtual_c1.medium(i-17376c73) launched at: 2013-11-23T01:44:43.000Z
+paravirtual_c1.xlarge(i-5a6db427) launched at: 2013-11-23T01:44:45.000Z
+hvm_m3.xlarge(i-bd788cc4) launched at: 2013-11-23T01:44:48.000Z
+hvm_m3.2xlarge(i-45e9c53c) launched at: 2013-11-23T01:44:50.000Z
+hvm_hi1.4xlarge(i-8b1fddf3) launched at: 2013-11-23T01:44:53.000Z
+hvm_hs1.8xlarge(i-aecc77c8) launched at: 2013-11-23T01:44:56.000Z
+hvm_c3.large(i-146f1470) launched at: 2013-11-23T01:44:58.000Z
+hvm_c3.xlarge(i-4fe9c536) launched at: 2013-11-23T01:45:01.000Z
+hvm_c3.2xlarge(i-4de9c534) launched at: 2013-11-23T01:45:04.000Z
+hvm_c3.4xlarge(i-a1788cd8) launched at: 2013-11-23T01:45:06.000Z
+hvm_c3.8xlarge(i-a6cc77c0) launched at: 2013-11-23T01:45:09.000Z
+hvm_cc1.4xlarge launch failed
+hvm_cg1.4xlarge launch failed
+hvm_cc2.8xlarge launch failed
+hvm_cr1.8xlarge launch failed
+hvm_g2.2xlarge launch failed
+paravirtual_ebsOptimized_m1.large launch failed
+paravirtual_ebsOptimized_m1.xlarge launch failed
+paravirtual_ebsOptimized_m3.xlarge launch failed
+paravirtual_ebsOptimized_m3.2xlarge launch failed
+paravirtual_ebsOptimized_m2.2xlarge launch failed
+paravirtual_ebsOptimized_m2.4xlarge launch failed
+paravirtual_ebsOptimized_c1.xlarge launch failed
+hvm_ebsOptimized_m3.xlarge launch failed
+hvm_ebsOptimized_m3.2xlarge launch failed
+hvm_ebsOptimized_c3.xlarge launch failed
+hvm_ebsOptimized_c3.2xlarge launch failed
+hvm_ebsOptimized_c3.4xlarge launch failed
+hvm_ebsOptimized_g2.2xlarge launch failed
