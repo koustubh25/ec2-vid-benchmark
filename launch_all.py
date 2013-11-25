@@ -13,7 +13,7 @@ hvm_ami = 'ami-d1bfe4b8'
 # List of instance types to be benchmarked
 # m3.xlarge and m3.2xlarge instances have 2 different virtualization types (Paravirtual or HVM)
 # m3.xlarge, m3.2xlarge, m1.large, m1.xlarge, c3.xlarge, c3.2xlarge, c3.4xlarge, c1.xlarge, g2.2xlarge, m2.2xlarge, m2.4xlarge can have EBS optimization with provisioned IOPS
-paravirtual = ['t1.micro', 'm1.small', ' m1.medium',
+paravirtual = ['t1.micro', 'm1.small', 'm1.medium',
                'm1.large', 'm1.xlarge', 'm3.xlarge',
                'm3.2xlarge', 'm2.xlarge', 'm2.2xlarge',
                'm2.4xlarge', 'c1.medium', 'c1.xlarge']
@@ -27,10 +27,7 @@ paravirtual_ebs = ['m1.large', 'm1.xlarge', 'm3.xlarge',
 hvm_ebs = ['m3.xlarge', 'm3.2xlarge', 'c3.xlarge',
            'c3.2xlarge', 'c3.4xlarge', 'g2.2xlarge']
 
-instance_types = {1: ['t1.micro', 'm1.small', ' m1.medium', 'm1.large', 'm1.xlarge', 'm3.xlarge', 'm3.2xlarge', 'm2.xlarge', 'm2.2xlarge', 'm2.4xlarge', 'c1.medium', 'c1.xlarge'],
-    2: ['m3.xlarge', 'm3.2xlarge', 'hi1.4xlarge', 'hs1.8xlarge', 'c3.large', 'c3.xlarge', 'c3.2xlarge', 'c3.4xlarge', 'c3.8xlarge', 'cc1.4xlarge', 'cg1.4xlarge', 'cc2.8xlarge', 'cr1.8xlarge', 'g2.2xlarge'],
-    3: ['m1.large', 'm1.xlarge', 'm3.xlarge', 'm3.2xlarge', 'm2.2xlarge', 'm2.4xlarge', 'c1.xlarge'],
-    4: ['m3.xlarge', 'm3.2xlarge', 'c3.xlarge', 'c3.2xlarge', 'c3.4xlarge', 'g2.2xlarge']}
+instance_types = {1: paravirtual, 2: hvm, 3: paravirtual_ebs, 4: hvm_ebs}
 virt_types = {'paravirtual': 1, 'hvm': 2, 'paravirtual_ebsOptimized': 3, 'hvm_ebsOptimized': 4}
 ebs_types = {'paravirtual': False, 'hvm': False, 'paravirtual_ebsOptimized': True, 'hvm_ebsOptimized': True}
 amis = {'paravirtual': paravirtual_ami, 'hvm': hvm_ami, 'paravirtual_ebsOptimized': paravirtual_ami, 'hvm_ebsOptimized': hvm_ami}
@@ -69,20 +66,34 @@ def launch_benchmark(conn, t_bench):
         time.sleep(2)
 
 
+def show_help(v_id = ""):
+    if v_id:
+        print "Invalid virtualization type: %s" % v_id
+    print "Usage: %s [paravirtual|hvm|paravirtual_ebsOptimized|hvm_ebsOptimized]" % sys.argv[0]
+    sys.exit(1)
+
+
 def main():
+    if len(sys.argv) != 2:
+        show_help()
+
+    v_key = sys.argv[1]
+
+    if not v_key in virt_types:
+        show_help(v_key)
+
+    # Start all the benchmark at once will most likely exceeds the quota limit per user
+    # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
-    #launch_benchmark(conn, 'test')
+    launch_benchmark(conn, v_key)
 
-    # Paravirtual
-    launch_benchmark(conn, 'paravirtual')
-
-    # HVM
+    ## Paravirtual
+    #launch_benchmark(conn, 'paravirtual')
+    ## HVM
     #launch_benchmark(conn, 'hvm')
-
-    # Paravirtual-EbsOptimized
+    ## Paravirtual-EbsOptimized
     #launch_benchmark(conn, 'paravirtual_ebsOptimized')
-
-    # HVM-EbsOptimized
+    ## HVM-EbsOptimized
     #launch_benchmark(conn, 'hvm_ebsOptimized')
 
 
