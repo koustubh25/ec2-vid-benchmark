@@ -1,0 +1,24 @@
+Instance Type,Instance Family,vCPU,ECU,Memory (GiB),Instance Storage (GB),Network Performance,Price
+m3.xlarge,General purpose,4,13,15,EBS only,Moderate,0.45
+m3.2xlarge,General purpose,8,26,30,EBS only,High,0.9
+m1.small,General purpose,1,1,1.7,1 x 160,Low,0.06
+m1.medium,General purpose,1,2,3.75,1 x 410,Moderate,0.12
+m1.large,General purpose,2,4,7.5,2 x 420,Moderate,0.24
+m1.xlarge,General purpose,4,8,15,4 x 420,High,0.48
+c3.large,Compute optimized,2,7,3.75,2 x 16 SSD,Moderate,0.15
+c3.xlarge,Compute optimized,4,14,7,2 x 40 SSD,High,0.3
+c3.2xlarge,Compute optimized,8,28,15,2 x 80 SSD,High,0.6
+c3.4xlarge,Compute optimized,16,55,30,2 x 160 SSD,High,1.2
+c3.8xlarge,Compute optimized,32,108,60,2 x 320 SSD,High,2.4
+c1.medium,Compute optimized,2,5,1.7,1 x 350,Moderate,0.145
+c1.xlarge,Compute optimized,8,20,7,4 x 420,High,0.58
+cc1.4xlarge,Compute optimized,16,33.5,23,2 x 840,10 Gigabit,1.3
+cc2.8xlarge,Compute optimized,32,88,60.5,4 x 840,10 Gigabit,2.4
+g2.2xlarge,GPU instances,8,26,15,1 x 60 SSD,High,0.65
+cg1.4xlarge,GPU Instances,16,33.5,22.5,2 x 840,10 Gigabit,2.1
+m2.xlarge,Memory optimized,2,6.5,17.1,1 x 420,Moderate,0.41
+m2.2xlarge,Memory optimized,4,13,34.2,1 x 850,Moderate,0.82
+m2.4xlarge,Memory optimized,8,26,68.4,2 x 840,High,1.64
+cr1.8xlarge,Memory optimized,32,88,244,2 x 120,10 Gigabit,3.5
+hi1.4xlarge,Storage optimized,16,35,60.5,"2 x 1,024",10 Gigabit,3.1
+hs1.8xlarge,Storage optimized,16,35,117,"24 x 2,0483",10 Gigabit,4.6

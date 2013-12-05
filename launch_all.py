@@ -36,13 +36,12 @@ amis = {'paravirtual': paravirtual_ami, 'hvm': hvm_ami, 'paravirtual_ebsOptimize
 region = 'us-east-1'
 k_name = 'iomz@cisco-macbook'
 s_grp = 'quick-start-1'
-u_data = base64.b64encode(open('initbench.sh','r').read())
 
-def launch_benchmark(conn, t_bench):
+def launch_benchmark(conn, t_bench, u_data):
     if t_bench=='test':
         ami = paravirtual_ami
-        i_types = ['m3.2xlarge']
-        ebs = True
+        i_types = ['t1.micro']
+        ebs = False
     else:
         ami = amis[t_bench]
         i_types =  instance_types[virt_types[t_bench]]
@@ -50,7 +49,7 @@ def launch_benchmark(conn, t_bench):
 
     for i_type in i_types:
         try:
-            ins = conn.run_instances(
+            reservation = conn.run_instances(
                 ami,
                 instance_type=i_type,
                 key_name=k_name,
@@ -62,31 +61,38 @@ def launch_benchmark(conn, t_bench):
         except:
             print "%s_%s launch failed" % (t_bench, i_type)
             continue
-        print "{0}_{1}({2}) launched at: {3}".format(t_bench, i_type, ins.id, ins.launch_time)
-        time.sleep(2)
+        print "{0}_{1}({2}) launched at: {3}".format(t_bench, i_type, reservation.id, reservation.launch_time)
+
+    return None
 
 
 def show_help(v_id = ""):
     if v_id:
         print "Invalid virtualization type: %s" % v_id
-    print "Usage: %s [paravirtual|hvm|paravirtual_ebsOptimized|hvm_ebsOptimized]" % sys.argv[0]
+    print "Usage: %s <paravirtual|hvm|paravirtual_ebsOptimized|hvm_ebsOptimized> [user script]" % sys.argv[0]
     sys.exit(1)
 
 
 def main():
-    if len(sys.argv) != 2:
-        show_help()
-
-    v_key = sys.argv[1]
-
-    if not v_key in virt_types:
-        show_help(v_key)
-
     # Start all the benchmark at once will most likely exceeds the quota limit per user
     # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
-    launch_benchmark(conn, v_key)
+    if len(sys.argv) == 3:
+        try:
+            u_data = base64.b64encode(open(sys.argv[2],'r').read())
+        except:
+            print "User script error: %s couldn't be opend." % sys.argv[2]
+            show_help()
+    elif len(sys.argv) != 2:
+        u_data = base64.b64encode(open('unixbench.sh','r').read())
+    else:
+        show_help()
 
+    v_key = sys.argv[1]
+    if not v_key in virt_types and v_key != 'test':
+        show_help(v_key)
+    else:
+        launch_benchmark(conn, v_key, u_data)
     ## Paravirtual
     #launch_benchmark(conn, 'paravirtual')
     ## HVM
@@ -95,6 +101,7 @@ def main():
     #launch_benchmark(conn, 'paravirtual_ebsOptimized')
     ## HVM-EbsOptimized
     #launch_benchmark(conn, 'hvm_ebsOptimized')
+    return None
 
 
 if __name__ == "__main__":

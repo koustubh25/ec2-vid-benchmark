@@ -1,4 +1,5 @@
 # Avoid storing credentials
+logs/
 .aws/
 .s3cfg
 bench.tgz
@@ -6,3 +7,5 @@ bench.tgz
 *.mp4
 *.log
 *.json
+*.out
+*.stats

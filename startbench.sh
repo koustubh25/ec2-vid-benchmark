@@ -33,7 +33,7 @@ yum -y update
 yum -y install autoconf automake gcc gcc-c++ git libtool make nasm pkgconfig zlib-devel yasm s3cmd
 echo '*** Dependency all installed and updated'
 
-# Determine the instance type
+# jq
 if [ -e /usr/bin/jq ]; then
   echo '*** jq already installed'
 else
