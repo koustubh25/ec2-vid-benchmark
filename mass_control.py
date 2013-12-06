@@ -48,6 +48,5 @@ def main():
     elif cmd == 'start':
         startInstances(conn)
 
-
 if __name__ == "__main__":
     main()

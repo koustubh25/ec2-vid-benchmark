@@ -6,10 +6,6 @@ if [ -e ~/unixbench_finished ]; then
 fi
 
 # Prepare the dependencies
-if [ ! -e /etc/yum.repos.d/s3tools.repo ]; then
-  echo "*** Adding s3tools.repo into \"/etc/yum.repos.d/\"..."
-  cd /etc/yum.repos.d && wget http://s3tools.org/repo/RHEL_6/s3tools.repo
-fi
 yum -y update
 yum -y install gcc perl-Time-HiRes s3cmd autoconf automake make
 echo '*** Dependency all installed and updated'
@@ -26,11 +22,8 @@ else
   echo '*** jq installed'
 fi
 
-# Fetch files for benchmark
-wget -O - https://s3-us-west-1.amazonaws.com/iomz-benchmark/UnixBench5.1.3.tgz | tar zxv -C ~/
-
 # Compile and run the benchmark
-cd ~/UnixBench/
+cd ~/unixbench/
 make
 echo '*** Retrieving the description of this instance...'
 ID_JSON=`wget -q -O - http://169.254.169.254/latest/dynamic/instance-identity/document`

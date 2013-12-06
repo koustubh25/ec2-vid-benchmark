@@ -62,6 +62,7 @@ def launch_benchmark(conn, t_bench, u_data):
             print "%s_%s launch failed" % (t_bench, i_type)
             continue
         print "{0}_{1}({2}) launched at: {3}".format(t_bench, i_type, reservation.id, reservation.launch_time)
+        time.sleep(2)
 
     return None
 
@@ -84,7 +85,7 @@ def main():
             print "User script error: %s couldn't be opend." % sys.argv[2]
             show_help()
     elif len(sys.argv) != 2:
-        u_data = base64.b64encode(open('unixbench.sh','r').read())
+        u_data = base64.b64encode(open('initbench_unix.sh','r').read())
     else:
         show_help()
 

@@ -1,8 +1,10 @@
 # Avoid storing credentials
+x264bench.tgz
+unixbench.tgz
 logs/
+unixbench/
 .aws/
 .s3cfg
-bench.tgz
 *.264
 *.mp4
 *.log

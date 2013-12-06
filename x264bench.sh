@@ -1,6 +1,6 @@
 #!/bin/sh
 # If benchmark is performed already, do nothing
-if [ -e ~/finished ]; then
+if [ -e ~/x264_finished ]; then
   exit
 fi
 
@@ -13,10 +13,10 @@ else
   SRC_FILE='elephantsdream_source.264'
 fi
 
-if [ ! -e ~/benchmark/$SRC_FILE ]; then
+if [ ! -e ~/x264bench/$SRC_FILE ]; then
   if [ $SRC_FILE=='elephantsdream_source.264' ]; then
     echo "*** Downloading \"$SRC_FILE\"..."
-    wget -O ~/benchmark/elephantsdream_source.264 http://www.zumzocken.de/va_x264/elephantsdream_source.264
+    wget -O ~/x264bench/elephantsdream_source.264 http://www.zumzocken.de/va_x264/elephantsdream_source.264
   else
     echo "*** The source file \"$SRC_FILE\" doesn't exist... Shutting down..."
     halt
@@ -90,12 +90,12 @@ fi
 IDESC=`cat ~/InstanceDesc`
 
 echo "*** Performing benchmark on \"$IDESC\"..."
-rm -f ~/benchmark/bench*
-rm -f ~/benchmark/*.tgz
-mkdir -p ~/benchmark/logs
-rm -f ~/benchmark/logs/*
-chmod +x ~/benchmark/launchbenchmark.sh
-screen -d -m /usr/bin/time -o ~/benchmark/logs/$IDESC.log ~/benchmark/launchbenchmark.sh $SRC_FILE $IDESC
+rm -f ~/x264bench/bench*
+rm -f ~/x264bench/*.tgz
+mkdir -p ~/x264bench/logs
+rm -f ~/x264bench/logs/*
+chmod +x ~/x264bench/launchbench.sh
+screen -d -m /usr/bin/time -o ~/x264bench/logs/$IDESC.log ~/x264bench/launchbenchmark.sh $SRC_FILE $IDESC
 
 while screen -list | grep Detached &> /dev/null
 do
@@ -104,10 +104,10 @@ done
 
 # Compress log and put s3
 echo '*** Benchmark finished, upload the logs to the s3 bucket...'
-cd ~/benchmark
+cd ~/x264bench
 tar zcvf $IDESC.tgz logs/*
-aws s3 cp $IDESC.tgz s3://iomz-benchmark/
+aws s3 cp $IDESC.tgz s3://iomz-benchmark/x264bench/
 
 echo '*** Benchmarking script completed, now halting the system...'
-env TZ='America/Los_Angeles' date > ~/finished
+env TZ='America/Los_Angeles' date > ~/x264_finished
 halt
