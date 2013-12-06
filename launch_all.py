@@ -84,7 +84,7 @@ def main():
         except:
             print "User script error: %s couldn't be opend." % sys.argv[2]
             show_help()
-    elif len(sys.argv) != 2:
+    elif len(sys.argv) == 2:
         u_data = base64.b64encode(open('initbench_unix.sh','r').read())
     else:
         show_help()
