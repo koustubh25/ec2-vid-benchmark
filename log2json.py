@@ -32,7 +32,21 @@ for f in files:
         logs[t_bench] = {}
 
     # time log file
-    if '.log' in f:
+    if 'unixbench.log' in f:
+        lf =  open(fp, 'r')
+        ll = list(lf)
+        ll.reverse() # For multicore result score
+        for line in ll:
+            m = re.match(r"System Benchmarks Index Score\s+(\d+\.\d+)", line)
+            if m is not None:
+                #print f, m.group()
+                break
+        lf.close()
+           
+        # Load instance information
+        logs[t_bench]['score'] = float(m.group(1))
+
+    elif '.log' in f:
         #print i_type
         lf =  open(fp, 'r')
         m = re.match(r"^(?P<user>\d+\.\d*)user\ (?P<system>\d+\.\d*)system\ (?P<elapsed>[\d|\.|:]*)elapsed\ (?P<cpu>\d+)\%", lf.readline())
