@@ -2,7 +2,6 @@
 x264bench.tgz
 unixbench.tgz
 logs/
-unixbench/
 .aws/
 .s3cfg
 *.264
