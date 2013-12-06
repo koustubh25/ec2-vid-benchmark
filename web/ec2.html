@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>EC2 instance benchmark result summary</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
+    <!-- User style -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+
+    <script src="script/taffy-min.js"></script>
+    <script src="script/highcharts.js"></script>
+    <script src="script/modules/exporting.js"></script>
+    <script src="script/grid.js"></script>
+    <script src="script/main.js"></script>
+  </head>
+  <body>
+    <div class="offset3 span6">
+        <br>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sort by 
+        <!--<button class="btn btn-primary btn-sm" onclick="swapCPUReal()">CPU <span class="glyphicon glyphicon-resize-horizontal"></span> Real</button>-->
+            <label>
+                <input type="radio" name="tsorter" id="cost" value="cost" onclick="changeSorter()" checked>
+                Cost
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="user" value="user" onclick="changeSorter()">
+                CPU time
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="elapsed" value="elapsed" onclick="changeSorter()">
+                Actual time elapsed
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="memory" value="memory" onclick="changeSorter()">
+                Memory capacity
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="ecu" value="ecu" onclick="changeSorter()">
+                ECU
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="vcpu" value="vcpu" onclick="changeSorter()">
+                VCPU
+            </label>
+            <label>
+                <input type="radio" name="tsorter" id="perf" value="perf" onclick="changeSorter()">
+                VCPU utilization
+            </label>
+         </p>
+    </div>
+    <div id="time" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="unix" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="unix_paravirtual" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="unix_hvm" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="fps" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="kbs" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+  </body>
+</html>
