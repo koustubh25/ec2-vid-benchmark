@@ -4,6 +4,8 @@ var unix_hash = {};
 var unix_cat = [];
 var unix_paravirtual = [];
 var unix_hvm = [];
+var unix_paravirtual_single = [];
+var unix_hvm_single = [];
 
 function getType(name) {
     var arr = [];
@@ -29,7 +31,7 @@ function drawTime(series) {
             x: -20
         },
         xAxis: {
-            categories: logs({iType:{"!is":"t1.micro"}}).order(tsorter).map(function(log){return log.iType + '_' + log.vType + '(EbsOptimized: ' + log.eType.toString() + ')';}),
+            categories: logs({iType:{"!is":"t1.micro"}}).order(tsorter).map(function(log){return '[' + log.vType +']' + log.iType + (log.eType ? '(EbsOpt)' : '');}),
             labels: {
                 rotation: 73 
             }
@@ -184,7 +186,7 @@ $(function () {
                 p2fps:parseFloat(v['p2fps']),p2kbs:parseFloat(v['p2kbs']),
                 vcpu:parseInt(v['vcpu']),network:v['network'],
                 ecu:parseFloat(v['ecu']),memory:parseFloat(v['memory']),
-                price:parseFloat(v['price']),cost:cost,perf:perf,score:parseFloat(v['score'])
+                price:parseFloat(v['price']),cost:cost,perf:perf,score:parseFloat(v['score']), scoreSingle:parseFloat(v['score_single'])
             });
         });
         
@@ -224,14 +226,18 @@ $(function () {
         unix_list = logs().order(sorter).map(function(log){
                 return [(log.iType + (log.eType ? '(EbsOpt)' : '')),
                         ((log.vType=='paravirtual') ? log.score : 0),
-                        ((log.vType=='hvm') ? log.score : 0)];
-            });
+                        ((log.vType=='hvm') ? log.score : 0),
+                         ((log.vType=='paravirtual') ? log.scoreSingle : 0),
+                        ((log.vType=='hvm') ? log.scoreSingle : 0)];
+           });
         for ( var i=0; i<unix_list.length; i++) {
             iType = unix_list[i][0];
             pVal = unix_list[i][1];
             hVal = unix_list[i][2];
+            pValSingle = unix_list[i][3];
+            hValSingle = unix_list[i][4];
             if (!(iType in unix_hash)) {
-                unix_hash[iType] = {'pVal':0, 'hVal':0};
+                unix_hash[iType] = {'pVal':0, 'hVal':0, 'pValSingle':0, 'hValSingle':0};
             }
             if (unix_hash[iType]['pVal'] == 0) {
                 unix_hash[iType]['pVal'] = pVal;
@@ -239,13 +245,25 @@ $(function () {
             if (unix_hash[iType]['hVal'] == 0) {
                 unix_hash[iType]['hVal'] = hVal;
             }
+            if (unix_hash[iType]['pValSingle'] == 0) {
+                unix_hash[iType]['pValSingle'] = pValSingle;
+            }
+            if (unix_hash[iType]['hValSingle'] == 0) {
+                unix_hash[iType]['hValSingle'] = hValSingle;
+            }
+
         }
         unix_cat = Object.keys(unix_hash);
         unix_paravirtual = [];
         unix_hvm = [];
+        unix_paravirtual_single = [];
+        unix_hvm_single = [];
+
         for (var i=0; i<unix_cat.length; i++) {
             unix_paravirtual.push(unix_hash[unix_cat[i]]['pVal']);
             unix_hvm.push(unix_hash[unix_cat[i]]['hVal']);
+            unix_paravirtual_single.push(unix_hash[unix_cat[i]]['pValSingle']);
+            unix_hvm_single.push(unix_hash[unix_cat[i]]['hValSingle']);
         }
 
         $('#unix').highcharts({
@@ -296,16 +314,16 @@ $(function () {
             }]
         });
 
-        $('#unix_paravirtual').highcharts({
+        $('#unix_single').highcharts({
             chart: {
                 type: 'column',
                 margin: [ 50, 50, 100, 80]
             },
             title: {
-                text: "UnixBench scores (Paravirtual)"
+                text: "UnixBench scores (per single core)"
             },
             xAxis: {
-                categories: logs({vType:{"is":"paravirtual"}}).order(sorter).map(function(log){return log.iType + (log.eType ? '(EbsOpt)' : '');}),
+                categories: unix_cat,
                 labels: {
                     rotation: 55
                 }
@@ -313,76 +331,35 @@ $(function () {
             yAxis: {
                 title: {
                     text: "UnixBench score"
+                },
+                subtitle: {
+                    text: 'Paravirtual / HVM'
                 }
             },
             legend: {
                 enabled: false
             },
             tooltip: {
-                pointFormat: 'UnixBench score: <b>{point.y:.1f}</b>'
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+                footerFormat: '</table>',
+                shared:true,
+                useHTML: true
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
             },
             series: [{
-                name: 'UnixBench score',
-                data: logs({vType:{"is":"paravirtual"}}).order(sorter).map(function(log){return log.score;}),
-                dataLabels: {
-                    enabled: true,
-                    rotation: -90,
-                    color: '#001100',
-                    align: 'left',
-                    x: 4,
-                    y: -1,
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif',
-                        textShadow: '0 0 0.7px black'
-                    }
-                }
+                name: 'UnixBench score (Paravirtual)',
+                data: unix_paravirtual_single
+            },{
+                name: 'UnixBench score (HVM)',
+                data: unix_hvm_single
             }]
         });
-
-        $('#unix_hvm').highcharts({
-            chart: {
-                type: 'column',
-                margin: [ 50, 50, 100, 80]
-            },
-            title: {
-                text: "UnixBench scores (HVM)"
-            },
-            xAxis: {
-                categories: logs({vType:{"is":"hvm"}}).order(sorter).map(function(log){return log.iType + (log.eType ? '(EbsOpt)' : '');}),
-                labels: {
-                    rotation: 55
-                }
-            },
-            yAxis: {
-                title: {
-                    text: "UnixBench score"
-                }
-            },
-            legend: {
-                enabled: false
-            },
-            tooltip: {
-                pointFormat: 'UnixBench score: <b>{point.y:.1f}</b>'
-            },
-            series: [{
-                name: 'UnixBench score',
-                data: logs({vType:{"is":"hvm"}}).order(sorter).map(function(log){return log.score;}),
-                dataLabels: {
-                    enabled: true,
-                    rotation: -90,
-                    color: '#001100',
-                    align: 'left',
-                    x: 4,
-                    y: -1,
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif',
-                        textShadow: '0 0 0.7px black'
-                    }
-                }
-            }]
-        });
-
     });
 });
