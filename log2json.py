@@ -35,13 +35,21 @@ for f in files:
     if 'unixbench.log' in f:
         lf =  open(fp, 'r')
         ll = list(lf)
+        lf.close()
+        for line in ll:
+            m = re.match(r"System Benchmarks Index Score\s+(\d+\.\d+)", line)
+            if m is not None:
+                #print f, m.group()
+                break
+        # Load instance information
+        logs[t_bench]['score_single'] = float(m.group(1))
+
         ll.reverse() # For multicore result score
         for line in ll:
             m = re.match(r"System Benchmarks Index Score\s+(\d+\.\d+)", line)
             if m is not None:
                 #print f, m.group()
                 break
-        lf.close()
            
         # Load instance information
         logs[t_bench]['score'] = float(m.group(1))

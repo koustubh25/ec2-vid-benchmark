@@ -1,7 +1,7 @@
 #!/bin/sh
 Paravirtual_AMI=ami-83e4bcea # Amazon Linux AMI 2013.09.1 [us-east-1]
 HVM_AMI=ami-d1bfe4b8 # Amazon Linux AMI (HVM) 2013.09.1 [us-east-1]
-ITYPE=c3.8xlarge
+ITYPE=cr1.8xlarge
 KEY_NAME=iomz@cisco-macbook
 SEC_GRP=quick-start-1
 USER_SCRIPT=`openssl enc -base64 -in initbench_unix.sh`
