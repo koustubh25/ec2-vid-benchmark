@@ -14,4 +14,4 @@ unix:
 
 .PHONY: clean
 clean:
-	rm -fr unixbench.tgz x264bench.tgz libav-HEAD*/ x264-snapshot-*/ x264bench.tgz x264bench/bench* x264bench/*.tgz x264bench/logs InstanceDesc x264_finished unix_finished
+	rm -fr unixbench.tgz x264bench.tgz libav-HEAD*/ x264-snapshot-*/ x264bench/bench* x264bench/*.tgz x264bench/logs InstanceDesc x264_finished unix_finished

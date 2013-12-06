@@ -39,8 +39,8 @@ fi
 IDESC=`cat ~/InstanceDesc`
 
 echo "*** Performing benchmark on \"$IDESC\"..."
-./Run &> ~/$IDESC_unixbench.log
-aws s3 cp ~/$IDESC_unixbench.log s3://iomz-benchmark/unixbench/
+./Run &> ~/${IDESC}_unixbench.log
+aws s3 cp ~/${IDESC}_unixbench.log s3://iomz-benchmark/unixbench/
 
 # halt
 env TZ='America/Los_Angeles' date > ~/unixbench_finished
