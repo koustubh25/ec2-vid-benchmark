@@ -3,16 +3,17 @@ ec2-vid-benchmark
 
 Benchmark script of AWS EC2 instances for video processing performance
 
-## What is this?
+# What is this?
 
-## Usage
+# Usage
 
-## TODO
- ### Multiple trials of benchmarking
+# TODO
+
+ ## Multiple trials of benchmarking
  - Naming rules for log files
  - Trial counts
 
- ### Launch scripts
+ ## Launch scripts
  - Aggregate into a single file
  - Launch failure detection and monitor active/non-active servers
  - Different types of video formats, size, duration, resolution, etc...
@@ -20,10 +21,10 @@ Benchmark script of AWS EC2 instances for video processing performance
  - Parsing and pushing results to NoSQL database on AWS
  - Automated configuration setup (Interactive?)
 
- ### Web graphs
+ ## Web graphs
  - Query to NoSQL and dynamical update
  - Automatical deployment
 
- ### Documentation
+ ## Documentation
  - Summary for the results
  - Usage
