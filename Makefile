@@ -8,7 +8,7 @@ x264:
 
 .PHONY: unix
 unix:
-	tar zcvf unixbench.tgz unixbench/ unixbench.sh .aws
+	tar zcvf unixbench.tgz unixbench.sh .aws
 	aws s3 cp unixbench.tgz s3://iomz-benchmark/
 	s3cmd setacl --acl-public s3://iomz-benchmark/unixbench.tgz
 
