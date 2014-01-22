@@ -11,7 +11,8 @@ unix:
 	tar zcvf unixbench.tgz unixbench.sh .aws
 	aws s3 cp unixbench.tgz s3://iomz-benchmark/
 	s3cmd setacl --acl-public s3://iomz-benchmark/unixbench.tgz
+	rm unixbench.tgz
 
 .PHONY: clean
 clean:
-	rm -fr unixbench.tgz x264bench.tgz libav-HEAD*/ x264-snapshot-*/ x264bench/bench* x264bench/*.tgz x264bench/logs InstanceDesc x264_finished unix_finished
+	rm -f unixbench.tgz
