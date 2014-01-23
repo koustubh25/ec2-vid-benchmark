@@ -1,12 +1,16 @@
 #!/usr/bin/python
-from HTMLParser import HTMLParser
-import json
-from pprint import pprint
-import sys
-import urllib
+# -*- coding: utf-8 -*-
 from boto.dynamodb2.fields import HashKey
 from boto.dynamodb2.table import Table
+from boto.dynamodb2.exceptions import ConditionalCheckFailedException
+from boto.exception import JSONResponseError
+from HTMLParser import HTMLParser
+from pprint import pprint
+import json
+import sys
+import urllib
 
+# Retrieve instance types' detail
 class InstanceParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
@@ -53,6 +57,7 @@ class InstanceParser(HTMLParser):
         elif tag == 'table':
             self.reset()
 
+# Retrieve instance virtualization type information
 class VirtTypeParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
@@ -91,12 +96,10 @@ class VirtTypeParser(HTMLParser):
         elif self.in_table and self.in_tr and self.in_td and self.i_type == '' and not self.in_strong:
             self.i_type = data.strip()
             if 0 < len(self.i_type):
-                #print self.i_type
                 self.v_types[self.i_type] = []
         elif self.in_table and self.in_tr and self.in_td and not self.in_strong:
             if data.strip() == "check":
                 v_type = self.check_virt_type(self.i_index)
-                #print v_type
                 if v_type is not None and not v_type in self.v_types[self.i_type]:
                     self.v_types[self.i_type].append(v_type)
 
@@ -107,7 +110,6 @@ class VirtTypeParser(HTMLParser):
         elif tag == 'strong':
             self.in_strong = False
             if 0 < len(self.tmp):
-                #print self.tmp
                 self.v_names.append(self.tmp)
         elif tag == 'tr':
             self.in_tr = False
@@ -121,18 +123,18 @@ class VirtTypeParser(HTMLParser):
     def check_virt_type(self, index):
         v_name = self.v_names[index]
         if 'PV' in v_name and 'EBS' in v_name and '64' in v_name:
-            #print 'paravirtual'
             return 'paravirtual'
         elif 'HVM' in v_name and 'EBS' in v_name and '64' in v_name:
-            #print 'hvm'
             return 'hvm'
         return None
 
     def get_virt_types(self, i_type):
         try:
             virt_types = self.v_types[i_type]
+        # Some types not in the list of recommended virtualization type for Amazon Linux
         except KeyError:
-            #print i_type
+            #if i_type in [m3.medium, m3.large]:
+            #    virt_types = ['paravirtual','hvm'] # The two are available in both paravirtual and hvm
             virt_types = None
         return virt_types
 
@@ -172,12 +174,18 @@ def main():
     except AssertionError:
         pass
     
-    #ec2_instances = Table.create('ec2_instances', schema=[HashKey('Instance Name'),])
-    ec2_instances = Table('ec2_instances')
+    # Check if the table exists or not, create one if not
+    try:
+        ec2_instances = Table('ec2_instances', schema=[HashKey('Instance Name'),])
+        tmp = ec2_instances.describe()
+    except JSONResponseError:
+        ec2_instances = Table.create('ec2_instances', schema=[HashKey('Instance Name'),])
     
+    # Iterate all the instance combinations
     for i in instance_types:
         virt_types = vtp.get_virt_types(i[1])
-        if virt_types is None:
+        # Check if the instance is available in the lists
+        if virt_types is None or i[1] not in base_prices or (i[7] =='Yes' and i[1] not in ebs_prices):
             continue
         for vt in virt_types:
             ec2_prices = {}
@@ -188,8 +196,7 @@ def main():
                 ec2_prices[i[1] + '_' + vt] = base_prices[i[1]]
 
             for instance_name, price in ec2_prices.iteritems():
-                ec2_instances.put_item(data={
-                #pprint ({
+                instance = {
                     cat[1]: i[1], # Instance Type 
                     cat[0]: i[0], # Instance Family
                     cat[2]: i[2], # Processor Arch
@@ -201,8 +208,14 @@ def main():
                     cat[8]: i[8], # Network Performance
                     'Price': price,
                     'Instance Name': instance_name
-                })
-
+                }
+                if ec2_instances.has_item(**{'Instance Name': instance_name}):
+                    ec2_instances.delete_item(**{'Instance Name': instance_name})
+                try:
+                    ec2_instances.put_item(data=instance)
+                    print "%s updated" % instance_name
+                except ConditionalCheckFailedException:
+                    print '%s not updated' % instance_name
 
 if __name__ == "__main__":
     main()

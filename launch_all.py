@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from boto.dynamodb2.table import Table
+from boto.exception import JSONResponseError
 import base64
 import boto.ec2
 import sys
 import time
-from boto.dynamodb2.table import Table
 
 # Number of trial
 trial = 5
@@ -16,7 +17,14 @@ hvm_ami = 'ami-d1bfe4b8'
 
 # List of instance types to be benchmarked
 instances = []
-for item in Table('ec2_instances').scan():
+try:
+    table = Table('ec2_instances')
+    table.describe()
+except JSONResponseError:
+    print "Instance information retrieval failed. Check the 'ec2_instances' table"
+    sys.exit()
+
+for item in table.scan():
     instances.append(item['Instance Name'])
 completed = []
 
@@ -35,6 +43,7 @@ def launch_benchmark(conn, instance):
     else:
         ebs = False
     size = instance.split('_')[0]
+    # Generate an user-script per instance
     u_data = base64.b64encode("#!/bin/bash\nTRIAL=%d\nINSTANCE_NAME=%s\n"%(trial,instance) + open('initbench_unix.sh','r').read())
 
     try:
@@ -51,6 +60,7 @@ def launch_benchmark(conn, instance):
         print "%s launch failed" % (instance)
         return None
     print "{0}({1}) launched at: {2}".format(instance, i.id, i.launch_time)
+    time.sleep(5) # Wait before tagging
     conn.create_tags([i.id], {"Name": instance})
     return instance
 
@@ -59,7 +69,7 @@ def main():
     # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
     
-    #instances = ['cc2.8xlarge_hvm','c3.4xlarge_hvm_ebsOptimized']
+    #instances = ['c1.medium_paravirtual']
     while 0 < len(instances):
         for i in instances:
             res = launch_benchmark(conn, i)

@@ -4,6 +4,7 @@ unixbench.tgz
 web/script/modules/
 logs/
 .aws/
+.boto
 .s3cfg
 *.264
 *.mp4
