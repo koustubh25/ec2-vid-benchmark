@@ -1,3 +1,7 @@
+#!/bin/sh
+TRIAL=5
+INSTANCE_NAME=`cat /var/local/instance_name`
+
 # user data for benchmark: UnixBench
 
 # Prepare the dependencies (for RedHat linux only)
@@ -6,12 +10,11 @@ yum -y install gcc perl-Time-HiRes autoconf automake make patch wget git
 echo '*** Dependency all installed and updated'
 
 # Fetch files for benchmark
-wget -O - https://s3-us-west-1.amazonaws.com/iomz-benchmark/unixbench.tgz | tar zxv -C ~/
+wget --no-check-certificate -O - https://s3-us-west-1.amazonaws.com/iomz-benchmark/unixbench.tgz | tar zxv -C ~/
 wget -O - https://byte-unixbench.googlecode.com/files/UnixBench5.1.3.tgz |tar zxv -C ~/
 
 # Register benchmark
 echo "~/unixbench.sh $TRIAL" >> /etc/rc.local
-echo $INSTANCE_NAME > /var/local/instance_name
 
 # If boto is not installed, install it
 if [ ! `python ~/boto_check.py` ]; then

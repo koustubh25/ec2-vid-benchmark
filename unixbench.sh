@@ -9,14 +9,15 @@ TRIED=0
 IDESC=`cat /var/local/instance_name`
 mkdir -p ~/log
 echo "*** Starting UnixBench on \"$IDESC\"..."
-while [ $TRIED -lt $# ]
+while [ $TRIED -lt $1 ]
 do
+  echo "*** UnixBench trial $TRIED started!"
   cd ~/UnixBench/
   ./Run &> ~/log/${IDESC}_${TRIED}.log
   python ~/upload_log.py $IDESC $TRIED
+  echo "*** UnixBench trial $TRIED finished!"
   TRIED=`expr $TRIED + 1`
   echo $TRIED > ~/unixbench_tried
-  echo "*** UnixBench trial $TRIED finished!"
 done
 
 # halt
