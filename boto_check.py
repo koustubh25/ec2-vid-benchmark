@@ -8,7 +8,7 @@ try:
     from boto.dynamodb2.table import Table
     from boto.exception import JSONResponseError
 except ImportError:
-    sys.exit()
+    sys.exit(0)
 
 instance_name = open('/var/local/instance_name').read().strip()
 
@@ -28,5 +28,3 @@ while table_struct is None:
         print "\tDone"
     except JSONResponseError:
         time.sleep(5)
-
-print 'boto'

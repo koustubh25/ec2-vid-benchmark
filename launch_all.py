@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from boto.dynamodb2.fields import HashKey, RangeKey
 from boto.dynamodb2.table import Table
 from boto.exception import JSONResponseError
 import base64
@@ -15,18 +16,24 @@ paravirtual_ami = 'ami-83e4bcea'
 # Amazon Linux AMI (HVM) 2013.09.2 [us-east-1]
 hvm_ami = 'ami-d1bfe4b8'
 
-# List of instance types to be benchmarked
+# Lists of instance types to be benchmarked and already completed
 instances = []
+completed = []
 try:
-    table = Table('ec2_instances')
-    table.describe()
+    ec2_instances = Table('ec2_instances')
+    ec2_instances.describe()
 except JSONResponseError:
     print "Instance information retrieval failed. Check the 'ec2_instances' table"
     sys.exit()
 
-for item in table.scan():
-    instances.append(item['Instance Name'])
-completed = []
+for item in ec2_instances.scan():
+    instance_name = item['Instance Name']
+    try:
+        instance_logs = Table(instance_name)
+        instance_logs.describe()
+        completed.append(instance_name)
+    except JSONResponseError:
+        instances.append(instance_name)
 
 # Confirm ~/.boto exists and contains credentials
 region = 'us-east-1'
@@ -71,14 +78,14 @@ def main():
     
     #instances = ['c1.medium_paravirtual']
     while 0 < len(instances):
+        for i in completed:
+            if i in instances:
+                instances.remove(i)
         for i in instances:
             res = launch_benchmark(conn, i)
             if res is not None and not res in completed:
                 completed.append(res)
             time.sleep(5)
-        for i in completed:
-            if i in instances:
-                instances.remove(i)
         for i in instances:
             print '%s is waiting for launch' % i
         time.sleep(60*30)
