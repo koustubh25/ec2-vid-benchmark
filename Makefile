@@ -4,6 +4,11 @@ all:
 	s3cmd setacl --acl-public s3://iomz-benchmark/unixbench.tgz
 	rm unixbench.tgz
 
+.PHONY: rackspace
+rackspace:
+	aws s3 cp initbench_unix.sh s3://iomz-benchmark/
+	s3cmd setacl --acl-public s3://iomz-benchmark/initbench_unix.sh
+
 .PHONY: clean
 clean:
 	rm -f unixbench.tgz
