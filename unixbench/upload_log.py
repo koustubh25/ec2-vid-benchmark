@@ -27,6 +27,31 @@ Tests = [
 ]
 
 def main():
+    unit_flag = False
+    delete_flag = False
+
+    # Lists of instance types
+    if delete_flag:
+        try:
+            ec2_instances = Table('ec2_instances')
+            ec2_instances.describe()
+        except JSONResponseError:
+            print "Instance information retrieval failed. Check the 'ec2_instances' table"
+            sys.exit(1)
+        
+        for item in ec2_instances.scan():
+            instance_name = item['Instance Name']
+            try:
+                instance_logs = Table(instance_name)
+                instance_logs.describe()
+                if instance_logs.delete():
+                    print "- %s deleted" % instance_name
+            except JSONResponseError:
+                print "# %s untouched" % instance_name
+            # Cool down
+            sleep(2)
+            sys.exit(0)
+
     instance_name = sys.argv[1]
     trial = sys.argv[2]
     try:
@@ -35,13 +60,15 @@ def main():
     except JSONResponseError:
         sys.exit()
 
-    # units table
-    #try:
-    #    units_t = Table('unixbench_unit', schema=[HashKey('test_name'),])
-    #    tmp = units_t.describe()
-    #except JSONResponseError:
-    #    units_t = Table.create('unixbench_unit', schema=[HashKey('test_name'),])
-    #    sleep(15) # Wait for the new db becomes available
+    # Create units table
+    if unit_flag:    
+        try:
+            units_t = Table('unixbench_unit', schema=[HashKey('test_name'),])
+            tmp = units_t.describe()
+        except JSONResponseError:
+            units_t = Table.create('unixbench_unit', schema=[HashKey('test_name'),])
+            sleep(15) # Wait for the new db becomes available
+        units = {}
 
     multi_flag = False
     result_flag = False
@@ -49,7 +76,6 @@ def main():
     b = {}
     single = {}
     multi = {}
-    #units = {}
     for line in open(os.path.dirname(os.path.abspath(__file__))+'/log/'+instance_name+'_'+trial+'.log','r'):
         if "Benchmark Run" in line:
             result_flag = True
@@ -58,7 +84,8 @@ def main():
         if Tests[test_index] in line:
             m = re.search(r"\s+(\d+\.\d)\s(\w+)", line)
             if test_index+1 != len(Tests):
-                #units[Tests[test_index]] = m.group(2)
+                if unit_flag:
+                    units[Tests[test_index]] = m.group(2)
                 b[Tests[test_index]] = m.group(1)
                 test_index += 1
             else:
@@ -81,13 +108,14 @@ def main():
     logs.put_item(data=single, overwrite=True)
     logs.put_item(data=multi, overwrite=True)
 
-    # units for tests
-    #for t, u in units.iteritems():
-    #    print t, u
-    #    units_t.put_item(data={
-    #        'test_name': t,
-    #        'unit': u
-    #    })
+    # Upload units for tests
+    if unit_flag:
+        for t, u in units.iteritems():
+            print t, u
+            units_t.put_item(data={
+                'test_name': t,
+                'unit': u
+            })
 
 if __name__ == "__main__":
     main()

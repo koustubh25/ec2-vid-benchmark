@@ -1,6 +1,4 @@
 # Avoid storing credentials
-x264bench.tgz
-unixbench.tgz
 web/script/modules/
 logs/
 .aws/
@@ -12,3 +10,4 @@ logs/
 *.json
 *.out
 *.stats
+*.tgz
