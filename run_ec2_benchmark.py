@@ -326,7 +326,7 @@ def main():
     # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
     
-    #instances = ['m2.4xlarge_paravirtual_ebsOptimized']
+    #instances = ['c3.4xlarge_hvm_ebsOptimized']
     num_instances = len(instances)
     while 0 < len(instances):
         for i in instances:

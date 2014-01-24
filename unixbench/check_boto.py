@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from time import sleep
 import sys
-import time
 
 try:
     from boto.dynamodb2.fields import HashKey, RangeKey
@@ -27,4 +27,4 @@ while table_struct is None:
         table_struct = logs.describe()
         print "\tDone"
     except JSONResponseError:
-        time.sleep(5)
+        sleep(5)
