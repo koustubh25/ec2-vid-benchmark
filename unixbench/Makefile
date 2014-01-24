@@ -5,8 +5,8 @@ all:
 
 .PHONY: rackspace
 rackspace:
-	aws s3 cp rackspace_userscript.sh s3://iomz-benchmark/
-	s3cmd setacl --acl-public s3://iomz-benchmark/rackspace_userscript.sh
+	aws s3 cp rackspace_unixbench_userscript.sh s3://iomz-benchmark/
+	s3cmd setacl --acl-public s3://iomz-benchmark/rackspace_unixbench_userscript.sh
 
 .PHONY: clean
 clean:

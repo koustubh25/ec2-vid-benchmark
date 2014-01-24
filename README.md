@@ -15,6 +15,8 @@ Start UnixBench
     $ git clone https://github.com/iomz/ec2-vid-benchmark.git
     $ cd ec2-vid-benchmark/unixbench
     $ run_ec2_benchmark.py --update-instance-list
+    $ run_ec2_benchmark.py unixbench
+    $ run_ec2_benchmark.py x264
 
 TODOs
 ----
