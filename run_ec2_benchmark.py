@@ -326,7 +326,8 @@ def main():
     # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
     
-    #instances = ['c3.4xlarge_hvm_ebsOptimized']
+    #instances = []
+    #completed = ['c3.8xlarge_hvm', 'c3.4xlarge_hvm_ebsOptimized']
     num_instances = len(instances)
     while 0 < len(instances):
         for i in instances:
