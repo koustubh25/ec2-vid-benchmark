@@ -60,10 +60,10 @@ def parse_log(log):
                 d_sum += val
                 d_arr.append(val)
             mean = d_sum/len(d_arr)
-            sd_sum = 0
+            variance_sum = 0
             for i in d_arr:
-                sd_sum += i*i
-            sd = sqrt(sd_sum/(len(d_arr)-1))
+                variance_sum += (i - mean)*(i - mean)
+            sd = sqrt(variance_sum/(len(d_arr)))
             if p not in logdict:
                 logdict[p] = {}
             logdict[p][Tests[t]] = {"Mean": mean, "SD": sd}
