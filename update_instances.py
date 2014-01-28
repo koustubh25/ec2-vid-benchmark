@@ -7,24 +7,10 @@ from boto.exception import JSONResponseError
 from HTMLParser import HTMLParser
 from pprint import pprint
 from time import sleep
-import base64
-import boto.ec2
 import json
+import simplejson as js
 import sys
 import urllib
-
-# Number of trial
-trial = 3
-
-# Amazon Linux AMI 2013.09.2 [us-east-1]
-paravirtual_ami = 'ami-83e4bcea'
-# Amazon Linux AMI (HVM) 2013.09.2 [us-east-1]
-hvm_ami = 'ami-d1bfe4b8'
-
-# Confirm ~/.boto exists and contains credentials
-region = 'us-east-1'
-k_name = 'iomz@cisco-macbook'
-s_grp = 'quick-start-1'
 
 # Retrieve instance types' detail
 class InstanceParser(HTMLParser):
@@ -199,18 +185,18 @@ def update_instance_list():
     print "\tDone"
     
     # Check if the table exists or not, create one if not
-    print "*** Connecting to DynamoDB 'ec2_instances' table..."
+    print "*** Connecting to DynamoDB 'instances' table..."
     table_struct = None
     try:
-        ec2_instances = Table('ec2_instances', schema=[HashKey('Instance Name'),])
-        table_struct = ec2_instances.describe()
+        instances = Table('instances', schema=[HashKey('Instance Name'),])
+        table_struct = instances.describe()
     except JSONResponseError:
-        ec2_instances = Table.create('ec2_instances', schema=[HashKey('Instance Name'),])
+        instances = Table.create('instances', schema=[HashKey('Instance Name'),])
         sys.stdout.write("*** DynamoDB is creating a new table...")
     while table_struct is None:
         try:
-            ec2_instances = Table('ec2_instances', schema=[HashKey('Instance Name'),])
-            table_struct = ec2_instances.describe()
+            instances = Table('instances', schema=[HashKey('Instance Name'),])
+            table_struct = instances.describe()
             print "\tDone"
         except JSONResponseError:
             sleep(5)
@@ -241,118 +227,69 @@ def update_instance_list():
                     cat[6]: i[6], # Instance Storage (GB)
                     cat[7]: i[7], # EBS-optimized Available 
                     cat[8]: i[8], # Network Performance
-                    'Price': price,
-                    'Instance Name': instance_name
+                    'Price ($/Hr)': price,
+                    'Instance Name': instance_name,
+                    'Cloud': 'EC2'
                 }
-                #if ec2_instances.has_item(**{'Instance Name': instance_name}):
-                #    print "# %s already exists in the table" % instance_name
-                #    continue
                 try:
-                    ec2_instances.put_item(data=instance, overwrite=True)
+                    instances.put_item(data=instance, overwrite=True)
                     print "+ %s updated" % instance_name
                 except ConditionalCheckFailedException:
                     print "- %s not updated" % instance_name
-    print "\n*** 'ec2_instances' table is now fully updated!"
 
-def start_benchmark_instance(conn, instance, u_data):
-    if 'paravirtual' in instance:
-        ami = paravirtual_ami
-    else:
-        ami = hvm_ami
-    if 'ebs' in instance:
-        ebs = True
-    else:
-        ebs = False
-    size = instance.split('_')[0]
+    rackspace_list = json.load(open("Rackspace_instances.json","r"))['Servers']
+    for i in rackspace_list:
+        instance = {
+            cat[1]: 'N/A', # Instance Type 
+            cat[0]: 'N/A', # Instance Family
+            cat[2]: "64-bit", # Processor Arch
+            cat[3]: str(i["vCPU"]), # vCPU
+            cat[4]: 'N/A', # ECU
+            cat[5]: str(i["Memory (GiB)"]), # Memory (GiB)
+            cat[6]: str(i["Instance Storage (GB)"]), # Instance Storage (GB)
+            cat[7]: 'N/A', # EBS-optimized Available 
+            cat[8]: i["Network Performance (Gb/s)"] + " Gb/s", # Network Performance
+            'Price ($/Hr)': i["price"],
+            'Instance Name': i["Instance Name"],
+            'Cloud': 'Rackspace'
+        }
+        try:
+            instances.put_item(data=instance, overwrite=True)
+            print "+ %s updated" % i["Instance Name"]
+        except ConditionalCheckFailedException:
+            print "- %s not updated" % i["Instance Name"]
 
-    try:
-        i = conn.run_instances(
-            ami,
-            instance_type=size,
-            key_name=k_name,
-            max_count=1,
-            security_groups=[s_grp],
-            user_data=u_data,
-            ebs_optimized=ebs
-            ).instances[0]
-    except:
-        print "%s launch failed" % (instance)
-        return None
-    print "{0}({1}) launched at: {2}".format(instance, i.id, i.launch_time)
-    sleep(5) # Wait before tagging
-    conn.create_tags([i.id], {"Name": instance})
-    return instance
+    print "\n*** 'instances' table is now fully updated!"
 
 def main():
-    if len(sys.argv) == 2:
-        if sys.argv[1] == '--update-instance-list':
-            update_instance_list()
-            sys.exit(0)
-        elif sys.argv[1] == 'unixbench':
-            u_data_model = 'unixbench/unixbench_ec2_userscript_model.dat'
-        elif sys.argv[1] == 'x264':
-            u_data_model = 'x264/x264_userscript_model.dat'
-    else:
-        sys.exit(0)
+    if 1 < len(sys.argv):
+        update_instance_list()
 
-    # Lists of instance types to be benchmarked and already completed
-    instances = []
-    completed = []
+    # Retrieve instance information
     try:
-        ec2_instances = Table('ec2_instances')
-        ec2_instances.describe()
+        instances = Table('instances')
+        instances.describe()
     except JSONResponseError:
-        print "Instance information retrieval failed. Check the 'ec2_instances' table"
-        sys.exit(0)
-    
-    if u_data_model == 'unixbench/unixbench_userscript_model.dat':
-        for item in ec2_instances.scan():
-            instance_name = item['Instance Name']
-            try:
-                instance_logs = Table(instance_name)
-                instance_logs.describe()
-                completed.append(instance_name)
-            except JSONResponseError:
-                instances.append(instance_name)
-    elif u_data_model == 'x264/x264_userscript_model.dat':
-        for item in ec2_instances.scan():
-            instance_name = item['Instance Name']
-            instances.append(instance_name)
-    else:
-        print 'Nothing to do'
-        sys.exit(0)
+        print "Instance information retrieval failed. Check the 'instances' table"
+        sys.exit(1)
 
-    # Start all the benchmark at once will most likely exceeds the quota limit per user
-    # Better to execute the benchmark on a category to category basis
-    conn = boto.ec2.connect_to_region(region)
-    
-    #instances = []
-    #completed = ['c3.8xlarge_hvm', 'c3.4xlarge_hvm_ebsOptimized']
-    num_instances = len(instances)
-    while 0 < len(instances):
-        for i in instances:
-            print '%s is waiting for launch' % i
-        for i in completed:
-            if i in instances:
-                instances.remove(i)
-        for i in instances:
-            # Generate an user-script per instance
-            userscript = ''
-            if u_data_model == 'unixbench/unixbench_userscript_model.dat':
-                userscript = "#!/bin/sh\nTRIAL=%d\nINSTANCE_NAME=%s\n"%(trial,i) + open(u_data_model,'r').read()
-            elif u_data_model == 'x264/x264_userscript_model.dat':
-                userscript = "#!/bin/sh\nTRIAL=%d\necho %s > /var/local/instance_name\n"%(trial,i) + open(u_data_model,'r').read()
-            u_data = base64.b64encode(userscript)
-            res = start_benchmark_instance(conn, i, u_data)
-            if res is not None and not res in completed:
-                completed.append(res)
-            sleep(5)
-        if len(completed) == num_instances:
-            break
-        else:
-            print '*** Cooling down...'
-            # 30 mins interval
-            sleep(60*30) 
+    instance_dict = {}
+    for i in instances.scan():
+        ebs = i['EBS-optimized Available'] if i['EBS-optimized Available'] != '-' else 'No'
+        instance_dict[i['Instance Name']] = {
+            'Cloud': i['Cloud'],
+            'EBS-optimized Available': ebs,
+            'ECU': i['ECU'],
+            'Instance Family': i['Instance Family'],
+            'Instance Storage (GB)': i['Instance Storage (GB)'],
+            'Instance Type': i['Instance Type'],
+            'Memory (GiB)': i['Memory (GiB)'],
+            'Network Performance': i['Network Performance'],
+            'Price ($/Hr)': i['Price ($/Hr)'],
+            'vCPU': i['vCPU']
+        }
+
+    print js.dumps(instance_dict, indent=4*' ')
 
 if __name__ == "__main__":
     main()
