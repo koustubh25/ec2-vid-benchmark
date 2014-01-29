@@ -1,9 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from boto.dynamodb2.fields import HashKey, RangeKey
-from boto.dynamodb2.table import Table
-from boto.dynamodb2.exceptions import ConditionalCheckFailedException
-from boto.exception import JSONResponseError
 from HTMLParser import HTMLParser
 from pprint import pprint
 from time import sleep
@@ -11,6 +7,20 @@ import json
 import simplejson as js
 import sys
 import urllib
+
+Specs = [
+    "Instance Type",
+    "Instance Family",
+    "Cloud",
+    "Virtualization Type",
+    "EBS-optimized",
+    "vCPU",
+    "Memory (GiB)",
+    "Price ($/Hr)",
+    "Instance Storage (GB)",
+    "ECU",
+    "Network Performance"
+]
 
 # Retrieve instance types' detail
 class InstanceParser(HTMLParser):
@@ -140,7 +150,9 @@ class VirtTypeParser(HTMLParser):
             virt_types = None
         return virt_types
 
-def update_instance_list():
+def update_instance_list(cloud):
+    ec2only = True if cloud == 'ec2only' else False
+
     # Parse us-east linux instance prices for each gens
     sys.stdout.write("*** Retrieving base price information for on-demand linux instances...")
     linux_od = "http://aws.amazon.com/ec2/pricing/json/linux-od.json"
@@ -170,7 +182,8 @@ def update_instance_list():
     except AssertionError:
         pass
     instance_types = parser.arr
-    cat = instance_types.pop(0)
+    # Remove the table header
+    header = instance_types.pop(0)
     print "\tDone"
     
     # Retrieve virtualization type information
@@ -183,24 +196,8 @@ def update_instance_list():
     except AssertionError:
         pass
     print "\tDone"
-    
-    # Check if the table exists or not, create one if not
-    print "*** Connecting to DynamoDB 'instances' table..."
-    table_struct = None
-    try:
-        instances = Table('instances', schema=[HashKey('Instance Name'),])
-        table_struct = instances.describe()
-    except JSONResponseError:
-        instances = Table.create('instances', schema=[HashKey('Instance Name'),])
-        sys.stdout.write("*** DynamoDB is creating a new table...")
-    while table_struct is None:
-        try:
-            instances = Table('instances', schema=[HashKey('Instance Name'),])
-            table_struct = instances.describe()
-            print "\tDone"
-        except JSONResponseError:
-            sleep(5)
-    
+
+    instance_dict = {}
     # Iterate all the instance combinations
     for i in instance_types:
         virt_types = vtp.get_virt_types(i[1])
@@ -216,80 +213,83 @@ def update_instance_list():
             else:
                 ec2_prices[i[1] + '_' + vt] = base_prices[i[1]]
 
+            # Uploading EC2 instance information
             for instance_name, price in ec2_prices.iteritems():
-                instance = {
-                    cat[1]: i[1], # Instance Type 
-                    cat[0]: i[0], # Instance Family
-                    cat[2]: i[2], # Processor Arch
-                    cat[3]: i[3], # vCPU
-                    cat[4]: i[4], # ECU
-                    cat[5]: i[5], # Memory (GiB)
-                    cat[6]: i[6], # Instance Storage (GB)
-                    cat[7]: i[7], # EBS-optimized Available 
-                    cat[8]: i[8], # Network Performance
-                    'Price ($/Hr)': price,
-                    'Instance Name': instance_name,
-                    'Cloud': 'EC2'
-                }
+                name = ""
+                virt = ""
+                ebs = ""
+                s = instance_name.split('_')
+                name = s[0]
+                virt = s[1]
+                ebs = True if len(s)==3 else False
                 try:
-                    instances.put_item(data=instance, overwrite=True)
-                    print "+ %s updated" % instance_name
-                except ConditionalCheckFailedException:
-                    print "- %s not updated" % instance_name
+                    vcpu = int(i[3])
+                except ValueError: # m1.small
+                    vcpu = 1
+                try:
+                    ecu = float(i[4])
+                except ValueError: # t1.micro
+                    ecu = float(0)
 
-    rackspace_list = json.load(open("Rackspace_instances.json","r"))['Servers']
-    for i in rackspace_list:
-        instance = {
-            cat[1]: 'N/A', # Instance Type 
-            cat[0]: 'N/A', # Instance Family
-            cat[2]: "64-bit", # Processor Arch
-            cat[3]: str(i["vCPU"]), # vCPU
-            cat[4]: 'N/A', # ECU
-            cat[5]: str(i["Memory (GiB)"]), # Memory (GiB)
-            cat[6]: str(i["Instance Storage (GB)"]), # Instance Storage (GB)
-            cat[7]: 'N/A', # EBS-optimized Available 
-            cat[8]: i["Network Performance (Gb/s)"] + " Gb/s", # Network Performance
-            'Price ($/Hr)': i["price"],
-            'Instance Name': i["Instance Name"],
-            'Cloud': 'Rackspace'
-        }
-        try:
-            instances.put_item(data=instance, overwrite=True)
-            print "+ %s updated" % i["Instance Name"]
-        except ConditionalCheckFailedException:
-            print "- %s not updated" % i["Instance Name"]
+                instance = {
+                    Specs[0]: i[1],         # Instance Type 
+                    Specs[1]: i[0],         # Instance Family
+                    Specs[2]: 'EC2',        # Cloud
+                    Specs[3]: virt,         # Virtualization Type
+                    Specs[4]: ebs,          # EBS-optimized
+                    Specs[5]: vcpu,         # vCPU
+                    Specs[6]: float(i[5]),  # Memory (GiB)
+                    Specs[7]: float(price), # Price ($/Hr)
+                    Specs[8]: i[6],         # Instance Storage (GB)
+                    Specs[9]: ecu,          # ECU
+                    Specs[10]: i[8]         # Network Performance
+                }
+                instance_dict[instance_name] = instance
 
-    print "\n*** 'instances' table is now fully updated!"
+    if not ec2only:
+        # Parse Rackspace info json file
+        rackspace_list = json.load(open("Rackspace_instances.json","r"))['Servers']
+        for i in rackspace_list:
+            # Fix naming for corrupted json
+            s = i['Instance Name'].split('_')
+            if 'Instance' in i['Instance Name']: # Standard
+                name = s[0].lower() + '_' + s[1].lower()
+                family = s[1]
+            else: # Performance
+                name = s[0] + "gb_" + s[2].lower()
+                family = s[2]
+            virt = 'paravirtual'
+            ebs = False
+            network = i["Network Performance (Gb/s)"].strip() + " Gb/s"
+            instance_name = name + '_' + virt
+
+            instance = {
+                Specs[0]: name,                            # Instance Type 
+                Specs[1]: family,                          # Instance Family
+                Specs[2]: 'Rackspace',                     # Cloud
+                Specs[3]: virt,                            # Virtualization Type
+                Specs[4]: ebs,                             # EBS-optimized
+                Specs[5]: i["vCPU"],                       # vCPU
+                Specs[6]: i["Memory (GiB)"],               # Memory (GiB)
+                Specs[7]: float(i["price"]),               # Price ($/Hr)
+                Specs[8]: str(i["Instance Storage (GB)"]), # Instance Storage (GB)
+                Specs[9]: float('0'),                      # ECU
+                Specs[10]: network                         # Network Performance
+            }
+            instance_dict[instance_name] = instance
+
+        return instance_dict
+    else:
+        return instance_dict
 
 def main():
-    if 1 < len(sys.argv):
-        update_instance_list()
+    if len(sys.argv) == 2 and sys.arv[1] == 'ec2':
+        update_instance_list('ec2only')
+    else:
+        instance_dict = update_instance_list('')
 
-    # Retrieve instance information
-    try:
-        instances = Table('instances')
-        instances.describe()
-    except JSONResponseError:
-        print "Instance information retrieval failed. Check the 'instances' table"
-        sys.exit(1)
-
-    instance_dict = {}
-    for i in instances.scan():
-        ebs = i['EBS-optimized Available'] if i['EBS-optimized Available'] != '-' else 'No'
-        instance_dict[i['Instance Name']] = {
-            'Cloud': i['Cloud'],
-            'EBS-optimized Available': ebs,
-            'ECU': i['ECU'],
-            'Instance Family': i['Instance Family'],
-            'Instance Storage (GB)': i['Instance Storage (GB)'],
-            'Instance Type': i['Instance Type'],
-            'Memory (GiB)': i['Memory (GiB)'],
-            'Network Performance': i['Network Performance'],
-            'Price ($/Hr)': i['Price ($/Hr)'],
-            'vCPU': i['vCPU']
-        }
-
-    print js.dumps(instance_dict, indent=4*' ')
+    with open('web/data/instances.json', 'w') as outfile:
+            js.dump(instance_dict, fp=outfile, indent=4*' ')
 
 if __name__ == "__main__":
     main()
