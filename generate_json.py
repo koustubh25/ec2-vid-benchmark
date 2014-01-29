@@ -6,7 +6,7 @@ from boto.exception import JSONResponseError
 from math import sqrt
 from pprint import pprint
 from time import sleep
-import simplejson as js
+import json
 import sys
 
 Tests = [
@@ -71,36 +71,38 @@ def parse_log(log):
     return logdict
 
 def main():
-    logs = {}
+    if 1 < len(sys.argv) and sys.argv[1] == 'unixbench':
+         logs = {}
 
-    # Retrieve instance information
-    try:
-        instances = Table('instances')
-        instances.describe()
-    except JSONResponseError:
-        print "Instance information retrieval failed. Check the 'instances' table"
-        sys.exit(1)
+         # Retrieve instance information
+         try:
+             instances_dict = json.load(open("web/data/instances.json", "r"))
+         except IOError:
+             print "*** web/data/instances.json not found! Try ./update_instances.py ***"
+             sys.exit(1)
 
-    for item in instances.scan():
-        instance_name = item['Instance Name']
-        log_raw = {}
-        try:
-            instance_logs = Table(instance_name)
-            for l in instance_logs.scan():
-                for t in range(0,len(Tests)):
-                    if l['parallel'] not in log_raw:
-                        log_raw[l['parallel']] = {}
-                    if int(l['trial']) not in log_raw[l['parallel']]:
-                        log_raw[l['parallel']][int(l['trial'])] = {}
-                    log_raw[l['parallel']][int(l['trial'])][TestsAbbr[t]] = float(l[Tests[t]])
-        except JSONResponseError:
-            print "No log was found for %s" % instance_name
-            sys.exit(1)
+         for instance_name in instances_dict.keys():
+             log_raw = {}
+             try:
+                 instance_logs = Table(instance_name)
+                 for l in instance_logs.scan():
+                     for t in range(0,len(Tests)):
+                         if l['parallel'] not in log_raw:
+                             log_raw[l['parallel']] = {}
+                         if int(l['trial']) not in log_raw[l['parallel']]:
+                             log_raw[l['parallel']][int(l['trial'])] = {}
+                         log_raw[l['parallel']][int(l['trial'])][TestsAbbr[t]] = float(l[Tests[t]])
+             except JSONResponseError:
+                 print "No log was found for %s" % instance_name
+                 sys.exit(1)
 
-        #pprint(log_raw)
-        logs[instance_name] = parse_log(log_raw)
+             #pprint(log_raw)
+             logs[instance_name] = parse_log(log_raw)
 
-    print js.dumps(logs, indent=4*' ')
+         with open('web/data/unixbench.json', 'w') as outfile:
+             js.dump(logs, fp=outfile, indent=4*' ')
+    else:
+        print "usage: %s unixbench" % sys.argv[0]
 
 if __name__ == "__main__":
     main()

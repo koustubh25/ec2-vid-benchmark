@@ -9,14 +9,21 @@ Features
 * Parse and store the results into DynamoDB
 * Plot the results in HTML5
 
+Prepare
+----
+    $ pip install boto
+    $ echo "[Credentials]\naws_access_key_id = <your aws access key id>\naws_secret_access_key = <your aws secret key>" > ~/.boto
+    $ git clone https://github.com/iomz/ec2-vid-benchmark.git
+    $ cd ec2-vid-benchmark
+    $ ./update_instances.py
+
 Start UnixBench
 ----
+    $ ./run_ec2_benchmark.py unixbench
 
-    $ git clone https://github.com/iomz/ec2-vid-benchmark.git
-    $ cd ec2-vid-benchmark/unixbench
-    $ run_ec2_benchmark.py --update-instance-list
-    $ run_ec2_benchmark.py unixbench
-    $ run_ec2_benchmark.py x264
+Start x264
+----
+    $ ./run_ec2_benchmark.py x264
 
 TODOs
 ----
@@ -25,7 +32,6 @@ TODOs
     * Argument parsing in unixbench/upload_log.py
 
 * Web graphs
-    * Query to NoSQL and dynamical update
     * Automatical deployment
 
 * Documentation
