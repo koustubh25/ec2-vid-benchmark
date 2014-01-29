@@ -13,53 +13,14 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-
     <script src="script/modules/taffy-min.js"></script>
     <script src="script/modules/highcharts.js"></script>
     <script src="script/modules/exporting.js"></script>
     <script src="script/modules/grid.js"></script>
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.0.0-rc6.min.js"></script>
     <script src="script/main.js"></script>
   </head>
   <body>
-    <div class="offset3 span6">
-        <br>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sort by 
-        <!--<button class="btn btn-primary btn-sm" onclick="swapCPUReal()">CPU <span class="glyphicon glyphicon-resize-horizontal"></span> Real</button>-->
-            <label>
-                <input type="radio" name="tsorter" id="cost" value="cost" onclick="changeSorter()" checked>
-                Cost
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="user" value="user" onclick="changeSorter()">
-                CPU time
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="elapsed" value="elapsed" onclick="changeSorter()">
-                Actual time elapsed
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="memory" value="memory" onclick="changeSorter()">
-                Memory capacity
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="ecu" value="ecu" onclick="changeSorter()">
-                ECU
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="vcpu" value="vcpu" onclick="changeSorter()">
-                VCPU
-            </label>
-            <label>
-                <input type="radio" name="tsorter" id="perf" value="perf" onclick="changeSorter()">
-                VCPU utilization
-            </label>
-         </p>
-    </div>
-    <div id="time" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
-    <div id="unix" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
     <div id="unix_single" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
-    <div id="fps" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
-    <div id="kbs" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
+    <div id="unix_multi" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
   </body>
 </html>
