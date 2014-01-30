@@ -187,4 +187,6 @@ $(function() {
 		});
 	});
 	//getJSON for unixbench.json
+    
+    //logs({test:'index', parallel:'single'}).order('mean').map(function(i){return i.name;})
 });
