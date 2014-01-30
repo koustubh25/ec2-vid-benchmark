@@ -17,9 +17,9 @@ Prepare
     $ cd ec2-vid-benchmark
     $ ./update_instances.py
 
-Start UnixBench
+Start UnixBench and store results into a local json file
 ----
-    $ ./run_ec2_benchmark.py unixbench
+    $ ./run_ec2_benchmark.py unixbench && ./generate_json.py unixbench
 
 Start x264
 ----

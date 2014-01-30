@@ -29,29 +29,6 @@ Tests = [
 def main():
     # TODO: Need argument parsing
     unit_flag = False
-    delete_flag = False
-
-    # Lists of instance types
-    if delete_flag:
-        try:
-            ec2_instances = Table('ec2_instances')
-            ec2_instances.describe()
-        except JSONResponseError:
-            print "Instance information retrieval failed. Check the 'ec2_instances' table"
-            sys.exit(1)
-        
-        for item in ec2_instances.scan():
-            instance_name = item['Instance Name']
-            try:
-                instance_logs = Table(instance_name)
-                instance_logs.describe()
-                if instance_logs.delete():
-                    print "- %s deleted" % instance_name
-            except JSONResponseError:
-                print "# %s untouched" % instance_name
-            # Cool down
-            sleep(2)
-            sys.exit(0)
 
     instance_name = sys.argv[1]
     trial = sys.argv[2]
@@ -107,7 +84,8 @@ def main():
                     multi['parallel'] = 'multi'
 
     logs.put_item(data=single, overwrite=True)
-    logs.put_item(data=multi, overwrite=True)
+    if len(multi) != 0:
+        logs.put_item(data=multi, overwrite=True)
 
     # Upload units for tests
     if unit_flag:
