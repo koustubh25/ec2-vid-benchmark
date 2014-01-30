@@ -11,22 +11,6 @@ import simplejson as js
 import sys
 
 Tests = [
-    "Dhrystone 2 using register variables",  # dhrystone
-    "Double-Precision Whetstone",            # double
-    "Execl Throughput",                      # execl
-    "File Copy 1024 bufsize 2000 maxblocks", # file1024
-    "File Copy 256 bufsize 500 maxblocks",   # file256
-    "File Copy 4096 bufsize 8000 maxblocks", # file4096
-    "Pipe Throughput",                       # pipethru
-    "Pipe-based Context Switching",          # pipecs
-    "Process Creation",                      # process
-    "Shell Scripts (1 concurrent)",          # shell1
-    "Shell Scripts (8 concurrent)",          # shell8
-    "System Call Overhead",                  # overhead
-    "System Benchmarks Index Score"          # index
-]
-
-TestsAbbr = [
     "dhrystone",
     "double",
     "execl",
@@ -42,6 +26,22 @@ TestsAbbr = [
     "index"
 ]
 
+TestNames = [
+    "Dhrystone 2 using register variables",  # dhrystone
+    "Double-Precision Whetstone",            # double
+    "Execl Throughput",                      # execl
+    "File Copy 1024 bufsize 2000 maxblocks", # file1024
+    "File Copy 256 bufsize 500 maxblocks",   # file256
+    "File Copy 4096 bufsize 8000 maxblocks", # file4096
+    "Pipe Throughput",                       # pipethru
+    "Pipe-based Context Switching",          # pipecs
+    "Process Creation",                      # process
+    "Shell Scripts (1 concurrent)",          # shell1
+    "Shell Scripts (8 concurrent)",          # shell8
+    "System Call Overhead",                  # overhead
+    "System Benchmarks Index Score"          # index
+]
+
 TRIAL = 5
 
 def parse_log(log):
@@ -53,11 +53,11 @@ def parse_log(log):
     logdict = {}
 
     for p in parallel:
-        for t in range(0,len(Tests)):
+        for t in range(0,len(TestNames)):
             d_sum = 0
             d_arr = []
             for i in range(0,TRIAL):
-                val = log[p][i][TestsAbbr[t]]
+                val = log[p][i][Tests[t]]
                 d_sum += val
                 d_arr.append(val)
             mean = d_sum/len(d_arr)
@@ -88,12 +88,12 @@ def main():
                 try:
                     instance_logs = Table(instance_name)
                     for l in instance_logs.scan():
-                        for t in range(0,len(Tests)):
+                        for t in range(0,len(TestNames)):
                             if l['parallel'] not in log_raw:
                                 log_raw[l['parallel']] = {}
                             if int(l['trial']) not in log_raw[l['parallel']]:
                                 log_raw[l['parallel']][int(l['trial'])] = {}
-                            log_raw[l['parallel']][int(l['trial'])][TestsAbbr[t]] = float(l[Tests[t]])
+                            log_raw[l['parallel']][int(l['trial'])][Tests[t]] = float(l[TestNames[t]])
                 except JSONResponseError:
                     print "No log was found for %s" % instance_name
                     sys.exit(1)

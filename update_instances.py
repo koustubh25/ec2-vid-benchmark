@@ -9,6 +9,20 @@ import sys
 import urllib
 
 Specs = [
+    "type",
+    "family",
+    "cloud",
+    "virt",
+    "ebs",
+    "vcpu",
+    "memory",
+    "price",
+    "storage",
+    "ecu",
+    "network"
+]
+
+SpecNames = [
     "Instance Type",
     "Instance Family",
     "Cloud",
@@ -242,7 +256,8 @@ def update_instance_list(cloud):
                     Specs[7]: float(price), # Price ($/Hr)
                     Specs[8]: i[6],         # Instance Storage (GB)
                     Specs[9]: ecu,          # ECU
-                    Specs[10]: i[8]         # Network Performance
+                    Specs[10]: i[8],        # Network Performance
+                    "name": instance_name
                 }
                 instance_dict[instance_name] = instance
 
@@ -274,7 +289,8 @@ def update_instance_list(cloud):
                 Specs[7]: float(i["price"]),               # Price ($/Hr)
                 Specs[8]: str(i["Instance Storage (GB)"]), # Instance Storage (GB)
                 Specs[9]: float('0'),                      # ECU
-                Specs[10]: network                         # Network Performance
+                Specs[10]: network,                        # Network Performance
+                "name": instance_name
             }
             instance_dict[instance_name] = instance
 

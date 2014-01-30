@@ -8,12 +8,30 @@
  Parse unixbench result json file to TAFFY DB and plot the figure with Highcharts.js
  */
 
+var instances = TAFFY();
+var logs = TAFFY();
+var index = TAFFY();
+
 Specs = [
-    "Cloud",
+    "type",
+    "family",
+    "cloud",
+    "virt",
+    "ebs",
+    "vcpu",
+    "memory",
+    "price",
+    "storage",
+    "ecu",
+    "network"
+]
+
+SpecNames = [
     "Instance Type",
+    "Instance Family",
+    "Cloud",
     "Virtualization Type",
     "EBS-optimized",
-    "Instance Family",
     "vCPU",
     "Memory (GiB)",
     "Price ($/Hr)",
@@ -21,8 +39,24 @@ Specs = [
     "ECU",
     "Network Performance"
 ]
- 
+
 Tests = [
+    "dhrystone",
+    "double",
+    "execl",
+    "file1024",
+    "file256",
+    "file4096",
+    "pipethru",
+    "pipecs",
+    "process",
+    "shell1",
+    "shell8",
+    "overhead",
+    "index"
+]
+
+TestNames = [
     "Dhrystone 2 using register variables",  // dhrystone
     "Double-Precision Whetstone",            // double
     "Execl Throughput",                      // execl
@@ -91,17 +125,12 @@ function drawLineGraph(el, title, subtitle, categories, yaxis, tooltipVal, serie
 }
 
 $(function() {
-	var instances = TAFFY();
-	var unixbench = TAFFY();
 	$.getJSON("data/instances.json", function(d) {
 		$.each(d, function(k, v) {
-		    document.getElementById("debug").innerHTML += k + "<br>";
-            instances.insert({
-                id: k,
-			    v: parseFloat(v['score_single'])
-            })
+            instances.insert(v);
 		});
 	});
+
 	// getJSON for instances.json
 
     /*
@@ -152,9 +181,9 @@ $(function() {
 		}]
 	});
     */
-
 	$.getJSON("data/unixbench.json", function(d) {
 		$.each(d, function(k, v) {
+            logs.insert(v);
 		});
 	});
 	//getJSON for unixbench.json
