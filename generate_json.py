@@ -50,7 +50,7 @@ def parse_log(log):
     else:
         parallel = ["single"]
 
-    logdict = {}
+    log_dict = {}
 
     for p in parallel:
         for t in range(0,len(TestNames)):
@@ -65,16 +65,16 @@ def parse_log(log):
             for i in d_arr:
                 variance_sum += (i - mean)*(i - mean)
             sd = sqrt(variance_sum/(len(d_arr)))
-            if p not in logdict:
-                logdict[p] = {}
-            logdict[p][Tests[t]] = {"Mean": mean, "SD": sd}
+            if p not in log_dict:
+                log_dict[p] = {}
+            log_dict[p][Tests[t]] = {"mean": mean, "sd": sd}
 
-    return logdict
+    return log_dict
 
 def main():
     if 1 < len(sys.argv):
         if sys.argv[1] == 'unixbench':
-            logs = {}
+            logs = []
 
             # Retrieve instance information
             try:
@@ -99,7 +99,17 @@ def main():
                     sys.exit(1)
 
                 #pprint(log_raw)
-                logs[instance_name] = parse_log(log_raw)
+                #logs[instance_name] = parse_log(log_raw)
+                log_dict = parse_log(log_raw)
+                for p in log_dict.keys():
+                    for t in log_dict[p].keys():
+                        log = {}
+                        log['name'] = instance_name
+                        log['parallel'] = p
+                        log['test'] = t
+                        log['mean'] = log_dict[p][t]['mean']
+                        log['sd'] = log_dict[p][t]['sd']
+                        logs.append(log)
 
             with open('web/data/unixbench.json', 'w') as outfile:
                 js.dump(logs, fp=outfile, indent=4*' ')
