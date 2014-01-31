@@ -30,66 +30,69 @@
 				<a href="family.html">Family</a>
 			</li>
 			<li class="active">
-				<a href="all.html" data-toggle="tab">All</a>
+				<a href="single-all.html" data-toggle="tab">Single-All</a>
+			</li>
+			<li>
+				<a href="multi-all.html">Multi-All</a>
 			</li>
 		</ul>
 		<div class="btn-group" style="margin: 9px 0 5px;">
-			<button type="button" class="btn btn-default" onclick="allPlot('index')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'index')">
 				Index
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('dhrystone')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'dhrystone')">
 				Dhrystone
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('double')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'double')">
 				Double
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('execl')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'execl')">
 				Execl
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('file256')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'file256')">
 				File256
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('file1024')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'file1024')">
 				File1024
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('file4096')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'file4096')">
 				File4096
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('pipethru')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'pipethru')">
 				PipeThrouput
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('pipecs')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'pipecs')">
 				PipeCS
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('process')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'process')">
 				Process
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('shell1')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'shell1')">
 				Shell1
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('shell8')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'shell8')">
 				Shell8
 			</button>
-			<button type="button" class="btn btn-default" onclick="allPlot('overhead')">
+			<button type="button" class="btn btn-default" onclick="allPlot('single', 'overhead')">
 				Overhead
 			</button>
-        </div>
-        <br>
-   		<div class="btn-group">
-          <button type="button" id="priceRatio" class="btn btn-primary" onclick="allPlot(0,'priceRatio')">
+		</div>
+		<br>
+		<div class="btn-group">
+			<button type="button" id="priceRatio" class="btn btn-primary" onclick="allPlot('single', 0,'priceRatio')">
 				Performance per Price
-          </button>
-          <button type="button" id="mean" class="btn btn-primary" onclick="allPlot(0,'mean')">
+			</button>
+			<button type="button" id="mean" class="btn btn-primary" onclick="allPlot('single', 0,'mean')">
 				Performance
-          </button>
-          <button type="button" id="price" class="btn btn-primary" onclick="allPlot(0,'price')">
+			</button>
+			<button type="button" id="price" class="btn btn-primary" onclick="allPlot('single', 0,'price')">
 				Price
-          </button>
+			</button>
 		</div>
 		<!-- Tab panes -->
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="all">
-				<div id="allplot" class="min-width: 600px; height: 1000px; margin: 0 auto"></div>
+				<div id="singleallplot" class="min-width: 600px; height: 1000px; margin: 0 auto"></div>
 			</div>
 		</div>
 		<script src="script/modules/taffy-min.js"></script>

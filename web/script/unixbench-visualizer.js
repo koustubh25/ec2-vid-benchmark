@@ -16,9 +16,9 @@ var colors = ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', 
 var Parallels = ['Single', 'Multi'];
 var Groups = ['size', 'type', 'family'];
 var Sorters = {
-    "priceRatio" : "Performance per Price",
-    "mean" : "Performance",
-    "price" : "Price"
+	"priceRatio" : "Performance per Price",
+	"mean" : "Performance",
+	"price" : "Price"
 };
 var Specs = {
 	"type" : "Instance Type",
@@ -144,10 +144,10 @@ function plotGroup(group, test, parallel) {
 		},
 		opposite : true
 	}];
-    var tool = {
-        shared : true,
-        valueSuffix : TestUnits[test]
-    };
+	var tool = {
+		shared : true,
+		valueSuffix : TestUnits[test]
+	};
 	var series = [{
 		name : 'Min-Max range',
 		type : 'arearange',
@@ -237,9 +237,9 @@ function plotInstances() {
 				text : Specs['memory']
 			}
 		}];
-        var tool = {
-            shared : true
-        };
+		var tool = {
+			shared : true
+		};
 		var series = [{
 			color : colors[5],
 			name : Specs['price'],
@@ -262,14 +262,13 @@ function plotInstances() {
 	}
 }
 
-function allPlot(test, sorter) {
-    if(test == 0)
-        test = lastTest;
-    else
-        lastTest = test;
-    if(typeof(sorter)==='undefined')
-        sorter = 'priceRatio';
-	var parallel = 'multi';
+function allPlot(parallel, test, sorter) {
+	if (test == 0)
+		test = lastTest;
+	else
+		lastTest = test;
+	if ( typeof (sorter) === 'undefined')
+		sorter = 'priceRatio';
 	var names = logs({
 		'test' : test,
 		'parallel' : parallel
@@ -295,14 +294,14 @@ function allPlot(test, sorter) {
 		var high = i.mean - i.sd;
 		return [low, high];
 	});
-    var priceRatios = logs({
+	var priceRatios = logs({
 		'test' : test,
 		'parallel' : parallel
 	}).order(sorter).map(function(i) {
 		/*return i.mean/(i.price*100);*/
-        return i.priceRatio;
+		return i.priceRatio;
 	});
-    var prices = logs({
+	var prices = logs({
 		'test' : test,
 		'parallel' : parallel
 	}).order(sorter).map(function(i) {
@@ -312,21 +311,21 @@ function allPlot(test, sorter) {
 		title : {
 			text : Tests[test] + ' (' + TestUnits[test] + ')'
 		}
-	},{
+	}, {
 		title : {
 			text : Tests[test] + '/(100*' + Specs['price'] + ')'
 		},
-        opposite : true
-	},{
+		opposite : true
+	}, {
 		title : {
 			text : Specs['price']
 		},
-        opposite : true
+		opposite : true
 	}];
-    var tool = {
-        shared : true,
-        valueSuffix : TestUnits[test]
-    };
+	var tool = {
+		shared : true,
+		valueSuffix : TestUnits[test]
+	};
 	var series = [{
 		name : 'Standard Deviation',
 		type : 'arearange',
@@ -338,13 +337,13 @@ function allPlot(test, sorter) {
 		type : 'column',
 		yAxis : 0,
 		data : means
-	},{
+	}, {
 		color : colors[4],
 		name : Tests[test] + '/(100*' + Specs['price'] + ')',
 		type : 'line',
 		yAxis : 1,
 		data : priceRatios
-	},{
+	}, {
 		color : colors[7],
 		name : Specs['price'],
 		type : 'line',
@@ -352,8 +351,8 @@ function allPlot(test, sorter) {
 		data : prices
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#allplot", Tests[test] + ' (' + parallel + ')', 'Sorted by '+Sorters[sorter], names, -73, yaxis, tool, series);
-    $('#allplot').highcharts().setSize(1400,1000);
+	drawGraph("#" + parallel + "allplot", Tests[test] + ' (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
+	$('#' + parallel + 'allplot').highcharts().setSize(1400, 1000);
 }
 
 $(function() {
@@ -373,13 +372,15 @@ $(function() {
 				name : v['name'],
 				sd : v['sd'],
 				parallel : v['parallel'],
-                cloud : v['cloud'],
-                price : v['price'],
-                priceRatio : v['priceRatio']
+				cloud : v['cloud'],
+				price : v['price'],
+				priceRatio : v['priceRatio']
 			});
 		});
-		if (document.getElementById('allplot') != null)
-			allPlot('index', 'priceRatio');
-    });
+		if (document.getElementById('singleallplot') != null)
+			allPlot('single', 'index', 'priceRatio');
+		if (document.getElementById('multiallplot') != null)
+			allPlot('multi', 'index', 'priceRatio');
+	});
 });
 
