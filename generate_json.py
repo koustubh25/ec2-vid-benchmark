@@ -61,10 +61,10 @@ def parse_log(log):
                 d_sum += val
                 d_arr.append(val)
             mean = d_sum/len(d_arr)
-            variance_sum = 0
+            sqsum = 0
             for i in d_arr:
-                variance_sum += (i - mean)*(i - mean)
-            sd = sqrt(variance_sum/(len(d_arr)))
+                sqsum += (i - mean)*(i - mean)
+            sd = sqrt(sqsum/(len(d_arr)))
             if p not in log_dict:
                 log_dict[p] = {}
             log_dict[p][Tests[t]] = {"mean": mean, "sd": sd}
@@ -72,17 +72,16 @@ def parse_log(log):
     return log_dict
 
 def main():
-    if 1 < len(sys.argv):
+    if len(sys.argv) == 2:
+        # Retrieve instance information
+        try:
+            instances_dict = json.load(open("web/data/instances.json", "r"))
+        except IOError:
+            print "*** web/data/instances.json not found! Try ./update_instances.py first! ***"
+            sys.exit(1)
+
         if sys.argv[1] == 'unixbench':
             logs = []
-
-            # Retrieve instance information
-            try:
-                instances_dict = json.load(open("web/data/instances.json", "r"))
-            except IOError:
-                print "*** web/data/instances.json not found! Try ./update_instances.py ***"
-                sys.exit(1)
-
             for instance_name in instances_dict.keys():
                 log_raw = {}
                 try:
@@ -113,21 +112,59 @@ def main():
 
             with open('web/data/unixbench.json', 'w') as outfile:
                 js.dump(logs, fp=outfile, indent=4*' ')
-        elif sys.argv[1] == "unit":
-            units_dict = {}
+        elif sys.argv[1] == 'group':
             try:
-                units = Table("unixbench_unit")
-                for u in units.scan():
-                    units_dict[u['test_name']] = u['unit']
-            except JSONResponseError:
-                print "unixbench_unit table not found"
-
-            with open('web/data/unixbench_unit.json', 'w') as outfile:
-                js.dump(units_dict, fp=outfile, indent=4*' ')
+                logs = json.load(open("web/data/unixbench.json", "r"))
+            except IOError:
+                print "*** web/data/unixbench.json not found! Create one with %s unixbench ***" % sys.argv[0]
+                sys.exit(1)
+            sizes = []
+            types = []
+            families = []
+            for v in instances_dict.values():
+                if v['size'] not in sizes:
+                    sizes.append(v['size'])
+                elif v['type'] not in types:
+                    types.append(v['type'])
+                elif v['family'] not in families:
+                    families.append(v['family'])
+            for g in ['size','type','family']:
+                for t in Tests:
+                    for p in ['single', 'multi']:
+                        index_dict = {}
+                        if g=='size':
+                            groups = sizes
+                        elif g=='type':
+                            groups = types
+                        elif g=='family':
+                            groups = families
+                        else:
+                            groups = []
+                        for gs in groups:
+                            means = []
+                            msum = 0
+                            cloud = ''
+                            for l in logs:
+                                if l['test'] == t and instances_dict[l['name']][g] == gs and l['parallel'] == p:
+                                    means.append(l['mean'])
+                                    msum += l['mean']
+                                    cloud = instances_dict[l['name']]['cloud']
+                            if len(means) == 0:
+                                index_dict[gs] = {'mean':0, 'min':0, 'max':0, 'num':0, 'cloud':cloud, 'parallel':p}
+                                continue
+                            mean = msum/len(means)
+                            if len(means) == 1:
+                                index_dict[gs] = {'mean':mean, 'min':mean, 'max':mean, 'num':1, 'cloud':cloud, 'parallel':p}
+                                continue
+                            mmin = min(means)
+                            mmax = max(means)
+                            index_dict[gs] = {'mean':mean, 'min':mmin, 'max':mmax, 'num':len(means), 'cloud':cloud, 'parallel':p}
+                        with open('web/data/ub_'+g+'_'+t+'.json', 'w') as outfile:
+                            js.dump(index_dict, fp=outfile, indent=4*' ')
         else:
-            print "usage: %s [unixbench|unit]" % sys.argv[0]
+            print "usage: %s [unixbench|group]" % sys.argv[0]
     else:
-        print "usage: %s [unixbench|unit]" % sys.argv[0]
+        print "usage: %s [unixbench|group]" % sys.argv[0]
 
 if __name__ == "__main__":
     main()

@@ -4,23 +4,44 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>EC2 instance benchmark result summary</title>
 		<!-- Latest compiled and minified CSS -->
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
-		<!-- Optional theme -->
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
-		<!-- User style -->
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
 
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
 		<!-- Latest compiled and minified JavaScript -->
-		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+	</head>
+	<body>
+		<!-- Nav tabs -->
+		<ul class="nav nav-tabs">
+			<li class="active">
+				<a href="index.html" data-toggle="tab">Home</a>
+			</li>
+			<li>
+				<a href="size.html">Size</a>
+			</li>
+			<li>
+				<a href="type.html">Type</a>
+			</li>
+			<li>
+				<a href="family.html">Family</a>
+			</li>
+		</ul>
+		<!-- Tab panes -->
+		<div class="tab-content">
+			<div class="tab-pane fade in active" id="home">
+				<div id="paravirtual" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+				<div id="hvm" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+        </div>
 		<script src="script/modules/taffy-min.js"></script>
 		<script src="script/modules/highcharts.js"></script>
+		<script src="script/modules/highcharts-more.js"></script>
 		<script src="script/modules/exporting.js"></script>
 		<script src="script/modules/grid.js"></script>
 		<script src="script/unixbench-visualizer.js"></script>
-	</head>
-	<body>
-      <div id="debug"></div>
-      <div id="unix_single" style="min-width: 600px; height: 800px; margin: 0 auto"></div>
 	</body>
 </html>

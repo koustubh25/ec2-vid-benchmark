@@ -19,7 +19,8 @@ Specs = [
     "price",
     "storage",
     "ecu",
-    "network"
+    "network",
+    "size"
 ]
 
 SpecNames = [
@@ -33,7 +34,8 @@ SpecNames = [
     "Price ($/Hr)",
     "Instance Storage (GB)",
     "ECU",
-    "Network Performance"
+    "Network Performance",
+    "Instance Size"
 ]
 
 # Retrieve instance types' detail
@@ -246,17 +248,18 @@ def update_instance_list(cloud):
                     ecu = float(0)
 
                 instance = {
-                    Specs[0]: i[1],         # Instance Type 
-                    Specs[1]: i[0],         # Instance Family
-                    Specs[2]: 'EC2',        # Cloud
-                    Specs[3]: virt,         # Virtualization Type
-                    Specs[4]: ebs,          # EBS-optimized
-                    Specs[5]: vcpu,         # vCPU
-                    Specs[6]: float(i[5]),  # Memory (GiB)
-                    Specs[7]: float(price), # Price ($/Hr)
-                    Specs[8]: i[6],         # Instance Storage (GB)
-                    Specs[9]: ecu,          # ECU
-                    Specs[10]: i[8],        # Network Performance
+                    Specs[0]: i[1].split('.')[0],   # Instance Type 
+                    Specs[1]: i[0],                 # Instance Family
+                    Specs[2]: 'EC2',                # Cloud
+                    Specs[3]: virt,                 # Virtualization Type
+                    Specs[4]: ebs,                  # EBS-optimized
+                    Specs[5]: vcpu,                 # vCPU
+                    Specs[6]: float(i[5]),          # Memory (GiB)
+                    Specs[7]: float(price),         # Price ($/Hr)
+                    Specs[8]: i[6],                 # Instance Storage (GB)
+                    Specs[9]: ecu,                  # ECU
+                    Specs[10]: i[8],                # Network Performance
+                    Specs[11]: i[1].split('.')[1],  # Instance size
                     "name": instance_name
                 }
                 instance_dict[instance_name] = instance
@@ -279,7 +282,7 @@ def update_instance_list(cloud):
             instance_name = name + '_' + virt
 
             instance = {
-                Specs[0]: name,                            # Instance Type 
+                Specs[0]: name.split('_')[1],              # Instance Type 
                 Specs[1]: family,                          # Instance Family
                 Specs[2]: 'Rackspace',                     # Cloud
                 Specs[3]: virt,                            # Virtualization Type
@@ -290,6 +293,7 @@ def update_instance_list(cloud):
                 Specs[8]: str(i["Instance Storage (GB)"]), # Instance Storage (GB)
                 Specs[9]: float('0'),                      # ECU
                 Specs[10]: network,                        # Network Performance
+                Specs[11]: name.split('_')[0],             # Instance Size
                 "name": instance_name
             }
             instance_dict[instance_name] = instance

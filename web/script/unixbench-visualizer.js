@@ -9,83 +9,56 @@
  */
 
 var instances = TAFFY();
-var logs = TAFFY();
-var index = TAFFY();
+var table = TAFFY();
+var colors = ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92'];
+var Parallels = ['Single', 'Multi'];
+var Groups = ['size', 'type', 'family'];
+var Specs = {
+	"type" : "Instance Type",
+	"family " : "Instance Family",
+	"cloud" : "Cloud",
+	"virt" : "Virtualization Type",
+	"ebs" : "EBS-optimized",
+	"vcpu" : "vCPU",
+	"memory" : "Memory (GiB)",
+	"price" : "Price ($/Hr)",
+	"storage" : "Instance Storage (GB)",
+	"ecu" : "ECU",
+	"network" : "Network Performance",
+	"size" : "Instance Size"
+};
+var Tests = {
+	"dhrystone" : "Dhrystone 2 using register variables",
+	"double" : "Double-Precision Whetstone",
+	"execl" : "Execl Throughput",
+	"file1024" : "File Copy 1024 bufsize 2000 maxblocks",
+	"file256" : "File Copy 256 bufsize 500 maxblocks",
+	"file4096" : "File Copy 4096 bufsize 8000 maxblocks",
+	"pipethru" : "Pipe Throughput",
+	"pipecs" : "Pipe-based Context Switching",
+	"process" : "Process Creation",
+	"shell1" : "Shell Scripts (1 concurrent)",
+	"shell8" : "Shell Scripts (8 concurrent)",
+	"overhead" : "System Call Overhead",
+	"index" : "System Benchmarks Index Score"
+};
+var TestUnits = {
+	"dhrystone" : "lps",
+	"double" : "MWIPS",
+	"execl" : "lps",
+	"file1024" : "KBps",
+	"file256" : "KBps",
+	"file4096" : "KBps",
+	"pipethru" : "lps",
+	"pipecs" : "lps",
+	"process" : "lps",
+	"shell1" : "lpm",
+	"shell8" : "lpm",
+	"overhead" : "lps",
+	"index" : ""
+};
 
-Specs = [
-    "type",
-    "family",
-    "cloud",
-    "virt",
-    "ebs",
-    "vcpu",
-    "memory",
-    "price",
-    "storage",
-    "ecu",
-    "network"
-]
-
-SpecNames = [
-    "Instance Type",
-    "Instance Family",
-    "Cloud",
-    "Virtualization Type",
-    "EBS-optimized",
-    "vCPU",
-    "Memory (GiB)",
-    "Price ($/Hr)",
-    "Instance Storage (GB)",
-    "ECU",
-    "Network Performance"
-]
-
-Tests = [
-    "dhrystone",
-    "double",
-    "execl",
-    "file1024",
-    "file256",
-    "file4096",
-    "pipethru",
-    "pipecs",
-    "process",
-    "shell1",
-    "shell8",
-    "overhead",
-    "index"
-]
-
-TestNames = [
-    "Dhrystone 2 using register variables",  // dhrystone
-    "Double-Precision Whetstone",            // double
-    "Execl Throughput",                      // execl
-    "File Copy 1024 bufsize 2000 maxblocks", // file1024
-    "File Copy 256 bufsize 500 maxblocks",   // file256
-    "File Copy 4096 bufsize 8000 maxblocks", // file4096
-    "Pipe Throughput",                       // pipethru
-    "Pipe-based Context Switching",          // pipecs
-    "Process Creation",                      // process
-    "Shell Scripts (1 concurrent)",          // shell1
-    "Shell Scripts (8 concurrent)",          // shell8
-    "System Call Overhead",                  // overhead
-    "System Benchmarks Index Score"          // index
-]
-
-function getType(name) {
-	var arr = [];
-	var desc = name.split('_');
-	arr.push(desc[0]);
-	arr.push(desc[1]);
-	if (desc.length == 3) {
-		arr.push(true);
-	} else {
-		arr.push(false);
-	}
-	return arr;
-}
-
-function drawLineGraph(el, title, subtitle, categories, yaxis, tooltipVal, series) {
+function drawGraph(el, title, subtitle, xaxis, rot, yaxis, series) {
 	$(el).highcharts({
 		title : {
 			text : title,
@@ -96,97 +69,198 @@ function drawLineGraph(el, title, subtitle, categories, yaxis, tooltipVal, serie
 			x : -20
 		},
 		xAxis : {
-			categories : categories,
+			categories : xaxis,
 			labels : {
-				rotation : 73
+				rotation : rot
 			}
 		},
-		yAxis : {
-			title : {
-				text : yaxis
-			},
-			plotLines : [{
-				value : 0,
-				width : 1,
-				color : "#808080"
-			}]
-		},
+		yAxis : yaxis,
 		tooltip : {
-			valueSuffix : tooltipVal
+			shared : true
 		},
 		legend : {
+			align : "left",
+			backgroundColor : '#FFF',
+			floating : true,
 			layout : "vertical",
-			align : "right",
-			verticalAlign : "middle",
-			borderWidth : 0
+			verticalAlign : "top",
+			x : 200,
+			y : 100
 		},
 		series : series
 	});
 }
 
+function plotGroup(group, test, parallel) {
+	/*
+    var el = document.createElement("div");
+	el.id = test;
+	el.style = "min-width: 600px; height: 800px; margin: 0 auto";
+	document.getElementById(group + "_" + parallel.toLowerCase()).appendChild(el);
+    */
+
+	var names = table({
+		'test' : test,
+		'parallel' : parallel
+	}).order('mean').map(function(i) {
+		return i.name;
+	});
+	var means = table({
+		'test' : test,
+		'parallel' : parallel
+	}).order('mean').map(function(i) {
+		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
+		return {
+			name : i.cloud + ' ' + i.name,
+			color : ccolor,
+			y : i.mean
+		};
+	});
+	var ranges = table({
+		'test' : test,
+		'parallel' : parallel
+	}).order('mean').map(function(i) {
+		return i.range;
+	});
+	var nums = table({
+		'test' : test,
+		'parallel' : parallel
+	}).order('mean').map(function(i) {
+		return i.num;
+	});
+	var yaxis = [{
+		title : {
+			text : Tests[test] + ' (' + TestUnits[test] + ')'
+		}
+	}, {
+		title : {
+			gridLineWidth : 0,
+			text : "Number of instances"
+		},
+		opposite : true
+	}];
+	var series = [{
+		name : 'Min-Max range',
+		type : 'arearange',
+		yAxis : 0,
+		data : ranges
+	}, {
+		color : colors[5],
+		name : Tests[test],
+		type : 'column',
+		yAxis : 0,
+		data : means
+	}, {
+		color : colors[1],
+		name : 'Number of instances',
+		type : 'line',
+		yAxis : 1,
+		data : nums
+	}];
+	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
+	drawGraph("#plot", Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, series);
+}
+
+function massPlot(group,test){
+    	$.getJSON("data/ub_" + group + "_" + test + ".json", function(d) {
+            table = TAFFY();
+    		$.each(d, function(k, v) {
+    			table.insert({
+    				'test' : test,
+    				'parallel' : v['parallel'],
+    				'name' : k,
+    				'range' : [v['min'], v['max']],
+    				'mean' : v['mean'],
+    				'num' : v['num'],
+    				'cloud' : v['cloud'],
+    			});
+    		});
+    	    plotGroup(group, test, 'multi');
+    	});
+}
+
+function massPlot(group,test){
+    	$.getJSON("data/ub_" + group + "_" + test + ".json", function(d) {
+            table = TAFFY();
+    		$.each(d, function(k, v) {
+    			table.insert({
+    				'test' : test,
+    				'parallel' : v['parallel'],
+    				'name' : k,
+    				'range' : [v['min'], v['max']],
+    				'mean' : v['mean'],
+    				'num' : v['num'],
+    				'cloud' : v['cloud'],
+    			});
+    		});
+    	    plotGroup(group, test, 'multi');
+    	});
+}
+
+function plotInstances() {
+    var virt = {'paravirtual':0, 'hvm':0};
+    for ( v in virt ){
+    	var names = instances({virt:v,ebs:false}).order('price').map(function(i) {
+    		return i.name.split("_")[0];
+    	});
+        var vcpus = instances({virt:v,ebs:false}).order('price').map(function(i) {
+    		return i.vcpu;
+    	});
+        var memories = instances({virt:v,ebs:false}).order('price').map(function(i) {
+            return i.memory;
+        });
+        var prices = instances({virt:v,ebs:false}).order('price').map(function(i) {
+    		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
+            return {
+                color : ccolor,
+                name : i.cloud + ': ' + i.name,
+                y : i.price
+            };
+        });
+    	var yaxis = [{
+    		title : {
+    			text : Specs['price']
+    		},
+            opposite : true
+    	},{
+    		title : {
+    			text : Specs['vcpu']
+    		}
+    	},{
+    		title : {
+    			text : Specs['memory']
+    		}
+    	}];
+    	var series = [{
+            color : colors[5],
+    		name : Specs['price'],
+    		type : 'column',
+    		yAxis : 0,
+    		data : prices 
+    	},{
+    		name : Specs['vcpu'],
+    		type : 'line',
+    		yAxis : 1,
+    		data : vcpus
+    	},{
+    		name : Specs['memory'],
+    		type : 'line',
+    		yAxis : 2,
+    		data : memories
+    	}];
+    	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
+    	drawGraph("#"+v, "Instance Specifications ("+v+")", 'EC2+Rackspace', names, 73, yaxis, series);
+    }
+}
+
 $(function() {
 	$.getJSON("data/instances.json", function(d) {
 		$.each(d, function(k, v) {
-            instances.insert(v);
+			//document.getElementById("debug").innerHTML += k + "<br>";
+			instances.insert(v);
 		});
+        if (document.getElementById('paravirtual')!=null)
+            plotInstances();
 	});
-
-	// getJSON for instances.json
-
-    /*
-	$('#unix_single').highcharts({
-		chart : {
-			type : 'column',
-			margin : [50, 50, 100, 80]
-		},
-		title : {
-			text : "UnixBench Index Score (per single core)"
-		},
-		xAxis : {
-			categories : unix_cat,
-			labels : {
-				rotation : 55
-			}
-		},
-		yAxis : {
-			title : {
-				text : "UnixBench score"
-			},
-			subtitle : {
-				text : 'Paravirtual / HVM'
-			}
-		},
-		legend : {
-			enabled : false
-		},
-		tooltip : {
-			headerFormat : '<span style="font-size:10px">{point.key}</span><table>',
-			pointFormat : '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' + '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
-			footerFormat : '</table>',
-			shared : true,
-			useHTML : true
-		},
-		plotOptions : {
-			column : {
-				pointPadding : 0.2,
-				borderWidth : 0
-			}
-		},
-		series : [{
-			name : 'UnixBench score (Paravirtual)',
-			data : unix_paravirtual_single
-		}, {
-			name : 'UnixBench score (HVM)',
-			data : unix_hvm_single
-		}]
-	});
-    */
-	$.getJSON("data/unixbench.json", function(d) {
-		$.each(d, function(k, v) {
-            logs.insert(v);
-		});
-	});
-	//getJSON for unixbench.json
-    
-    //logs({test:'index', parallel:'single'}).order('mean').map(function(i){return i.name;})
 });
+
