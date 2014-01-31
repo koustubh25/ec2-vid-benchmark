@@ -108,6 +108,10 @@ def main():
                         log['test'] = t
                         log['mean'] = log_dict[p][t]['mean']
                         log['sd'] = log_dict[p][t]['sd']
+                        log['cloud'] = instances_dict[instance_name]['cloud']
+                        log['price'] = instances_dict[instance_name]['price']
+                        log['priceRatio'] = log['mean']/(100*log['price'])
+
                         logs.append(log)
 
             with open('web/data/unixbench.json', 'w') as outfile:
