@@ -11,12 +11,18 @@
 var instances = TAFFY();
 var logs = TAFFY();
 var table = TAFFY();
+var lastTest = 'index';
 var colors = ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92'];
 var Parallels = ['Single', 'Multi'];
 var Groups = ['size', 'type', 'family'];
+var Sorters = {
+    "priceRatio" : "Performance per Price",
+    "mean" : "Performance",
+    "price" : "Price"
+};
 var Specs = {
 	"type" : "Instance Type",
-	"family " : "Instance Family",
+	"family" : "Instance Family",
 	"cloud" : "Cloud",
 	"virt" : "Virtualization Type",
 	"ebs" : "EBS-optimized",
@@ -256,18 +262,24 @@ function plotInstances() {
 	}
 }
 
-function allPlot(test) {
+function allPlot(test, sorter) {
+    if(test == 0)
+        test = lastTest;
+    else
+        lastTest = test;
+    if(typeof(sorter)==='undefined')
+        sorter = 'priceRatio';
 	var parallel = 'multi';
 	var names = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('priceRatio').map(function(i) {
+	}).order(sorter).map(function(i) {
 		return i.name;
 	});
 	var means = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('priceRatio').map(function(i) {
+	}).order(sorter).map(function(i) {
 		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
 		return {
 			name : i.cloud + ' ' + i.name,
@@ -278,7 +290,7 @@ function allPlot(test) {
 	var sds = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('priceRatio').map(function(i) {
+	}).order(sorter).map(function(i) {
 		var low = i.mean - i.sd;
 		var high = i.mean - i.sd;
 		return [low, high];
@@ -286,14 +298,14 @@ function allPlot(test) {
     var priceRatios = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('priceRatio').map(function(i) {
+	}).order(sorter).map(function(i) {
 		/*return i.mean/(i.price*100);*/
         return i.priceRatio;
 	});
     var prices = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('priceRatio').map(function(i) {
+	}).order(sorter).map(function(i) {
 		return i.price;
 	});
 	var yaxis = [{
@@ -340,7 +352,7 @@ function allPlot(test) {
 		data : prices
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#allplot", Tests[test] + ' (' + parallel + ')', 'Sorted in efficiency per price', names, -73, yaxis, tool, series);
+	drawGraph("#allplot", Tests[test] + ' (' + parallel + ')', 'Sorted by '+Sorters[sorter], names, -73, yaxis, tool, series);
     $('#allplot').highcharts().setSize(1400,1000);
 }
 
@@ -367,7 +379,7 @@ $(function() {
 			});
 		});
 		if (document.getElementById('allplot') != null)
-			allPlot('index');
+			allPlot('index', 'priceRatio');
     });
 });
 
