@@ -11,10 +11,10 @@
 var instances = TAFFY();
 var logs = TAFFY();
 var table = TAFFY();
-var lastTest = 'index';
+var currentTab = 'home';
 var colors = ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92'];
-var Parallels = ['Single', 'Multi'];
-var Groups = ['size', 'type', 'family'];
+var Parallels = ['single', 'multi'];
+var Groups = ['size', 'type', 'family', 'price'];
 var Sorters = {
 	"priceRatio" : "Performance per Price",
 	"mean" : "Performance",
@@ -50,18 +50,18 @@ var Tests = {
 	"index" : "System Benchmarks Index Score"
 };
 var TestUnits = {
-	"dhrystone" : " lps",
-	"double" : " MWIPS",
-	"execl" : " lps",
-	"file1024" : " KBps",
-	"file256" : " KBps",
-	"file4096" : " KBps",
-	"pipethru" : " lps",
-	"pipecs" : " lps",
-	"process" : "l ps",
-	"shell1" : " lpm",
-	"shell8" : " lpm",
-	"overhead" : " lps",
+	"dhrystone" : "lps",
+	"double" : "MWIPS",
+	"execl" : "lps",
+	"file1024" : "KBps",
+	"file256" : "KBps",
+	"file4096" : "KBps",
+	"pipethru" : "lps",
+	"pipecs" : "lps",
+	"process" : "lps",
+	"shell1" : "lpm",
+	"shell8" : "lpm",
+	"overhead" : "lps",
 	"index" : ""
 };
 
@@ -83,14 +83,19 @@ function drawGraph(el, title, subtitle, xaxis, rot, yaxis, tool, series) {
 		},
 		yAxis : yaxis,
 		tooltip : tool,
+		plotOptions : {
+			column : {
+				stacking : 'normal'
+			}
+		},
 		legend : {
 			align : "left",
 			backgroundColor : '#FFF',
 			floating : true,
 			layout : "vertical",
 			verticalAlign : "top",
-			x : 200,
-			y : 100
+			x : 150,
+			y : 50
 		},
 		series : series
 	});
@@ -101,41 +106,65 @@ function plotGroup(group, test, parallel) {
 	 var el = document.createElement("div");
 	 el.id = test;
 	 el.style = "min-width: 600px; height: 800px; margin: 0 auto";
-	 document.getElementById(group + "_" + parallel.toLowerCase()).appendChild(el);
+	 document.getElementById(group + "_" + parallel).appendChild(el);
 	 */
-
+	if (test != 'index')
+		var tname = Tests[test] + ' (' + TestUnits[test] + ')';
+	else
+		var tname = Tests[test];
 	var names = table({
 		'test' : test,
 		'parallel' : parallel
 	}).order('mean').map(function(i) {
 		return i.name;
 	});
-	var means = table({
+	var ec2means = table({
 		'test' : test,
 		'parallel' : parallel
 	}).order('mean').map(function(i) {
-		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
-		return {
-			name : i.cloud + ' ' + i.name,
-			color : ccolor,
-			y : i.mean
-		};
+		if (i.cloud == 'EC2') {
+			return {
+				name : i.cloud + ': ' + i.name,
+				y : parseFloat(i.mean.toFixed(2))
+			};
+		} else {
+			return {
+				name : i.cloud + ': ' + i.name,
+				y : 0
+			};
+		}
+	});
+	var rackmeans = table({
+		'test' : test,
+		'parallel' : parallel
+	}).order('mean').map(function(i) {
+		if (i.cloud != 'EC2') {
+			return {
+				name : i.cloud + ': ' + i.name,
+				y : parseFloat(i.mean.toFixed(2))
+			};
+		} else {
+			return {
+				name : i.cloud + ': ' + i.name,
+				y : 0
+			};
+		}
 	});
 	var ranges = table({
 		'test' : test,
 		'parallel' : parallel
 	}).order('mean').map(function(i) {
-		return i.range;
+		return [parseFloat(i.range[0].toFixed(2)), parseFloat(i.range[1].toFixed(2))];
 	});
 	var nums = table({
 		'test' : test,
 		'parallel' : parallel
 	}).order('mean').map(function(i) {
-		return i.num;
+		return parseFloat(i.num.toFixed(2));
 	});
 	var yaxis = [{
 		title : {
-			text : Tests[test] + ' (' + TestUnits[test] + ')'
+			text : tname
 		}
 	}, {
 		title : {
@@ -145,8 +174,7 @@ function plotGroup(group, test, parallel) {
 		opposite : true
 	}];
 	var tool = {
-		shared : true,
-		valueSuffix : TestUnits[test]
+		shared : true
 	};
 	var series = [{
 		name : 'Min-Max range',
@@ -155,10 +183,16 @@ function plotGroup(group, test, parallel) {
 		data : ranges
 	}, {
 		color : colors[5],
-		name : Tests[test],
+		name : 'EC2 ' + tname,
 		type : 'column',
 		yAxis : 0,
-		data : means
+		data : ec2means
+	}, {
+		color : colors[3],
+		name : 'Rackspace ' + tname,
+		type : 'column',
+		yAxis : 0,
+		data : rackmeans
 	}, {
 		color : colors[1],
 		name : 'Number of instances',
@@ -167,7 +201,7 @@ function plotGroup(group, test, parallel) {
 		data : nums
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#plot", Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, tool, series);
+	drawGraph("#" + group, Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, tool, series);
 }
 
 function massPlot(group, test) {
@@ -212,16 +246,37 @@ function plotInstances() {
 		}).order('price').map(function(i) {
 			return i.memory;
 		});
-		var prices = instances({
+		var ec2prices = instances({
 			virt : v,
 			ebs : false
 		}).order('price').map(function(i) {
-			ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
-			return {
-				color : ccolor,
-				name : i.cloud + ': ' + i.name,
-				y : i.price
-			};
+			if (i.cloud == 'EC2') {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : i.price
+				};
+			} else {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : 0
+				};
+			}
+		});
+		var rackprices = instances({
+			virt : v,
+			ebs : false
+		}).order('price').map(function(i) {
+			if (i.cloud != 'EC2') {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : i.price
+				};
+			} else {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : 0
+				};
+			}
 		});
 		var yaxis = [{
 			title : {
@@ -242,10 +297,16 @@ function plotInstances() {
 		};
 		var series = [{
 			color : colors[5],
-			name : Specs['price'],
+			name : 'EC2 ' + Specs['price'],
 			type : 'column',
 			yAxis : 0,
-			data : prices
+			data : ec2prices
+		}, {
+			color : colors[3],
+			name : 'Rackspace ' + Specs['price'],
+			type : 'column',
+			yAxis : 0,
+			data : rackprices
 		}, {
 			name : Specs['vcpu'],
 			type : 'line',
@@ -263,57 +324,67 @@ function plotInstances() {
 }
 
 function allPlot(parallel, test, sorter) {
-	if (test == 0)
-		test = lastTest;
+	if (test != 'index')
+		var tname = Tests[test] + ' (' + TestUnits[test] + ')';
 	else
-		lastTest = test;
+		var tname = Tests[test];
 	if ( typeof (sorter) === 'undefined')
 		sorter = 'priceRatio';
 	var names = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).map(function(i) {
+	}).order(sorter).limit(20).map(function(i) {
 		return i.name;
 	});
 	var means = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).map(function(i) {
+	}).order(sorter).limit(20).map(function(i) {
 		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
 		return {
-			name : i.cloud + ' ' + i.name,
 			color : ccolor,
-			y : i.mean
+			name : i.cloud + ': ' + i.name,
+			y : parseFloat(i.mean.toFixed(2))
 		};
 	});
 	var sds = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).map(function(i) {
-		var low = i.mean - i.sd;
-		var high = i.mean - i.sd;
-		return [low, high];
+	}).order(sorter).limit(20).map(function(i) {
+		var low = (i.mean - i.sd).toFixed(2);
+		var high = (i.mean + i.sd).toFixed(2);
+		return {
+			low : parseFloat(low),
+			high : parseFloat(high),
+			name : i.cloud + ': ' + i.name
+		};
 	});
 	var priceRatios = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).map(function(i) {
+	}).order(sorter).limit(20).map(function(i) {
 		/*return i.mean/(i.price*100);*/
-		return i.priceRatio;
+		return {
+			name : i.cloud + ': ' + i.name,
+			y : parseFloat(i.priceRatio.toFixed(2))
+		};
 	});
 	var prices = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).map(function(i) {
-		return i.price;
+	}).order(sorter).limit(20).map(function(i) {
+		return {
+			name : i.cloud + ': ' + i.name,
+			y : i.price
+		};
 	});
 	var yaxis = [{
 		title : {
-			text : Tests[test] + ' (' + TestUnits[test] + ')'
+			text : tname
 		}
 	}, {
 		title : {
-			text : Tests[test] + '/(100*' + Specs['price'] + ')'
+			text : tname + '/(100*' + Specs['price'] + ')'
 		},
 		opposite : true
 	}, {
@@ -323,23 +394,23 @@ function allPlot(parallel, test, sorter) {
 		opposite : true
 	}];
 	var tool = {
-		shared : true,
-		valueSuffix : TestUnits[test]
+		shared : true
 	};
 	var series = [{
+		color : colors[2],
 		name : 'Standard Deviation',
 		type : 'arearange',
 		yAxis : 0,
 		data : sds
 	}, {
 		color : colors[5],
-		name : Tests[test],
+		name : tname,
 		type : 'column',
 		yAxis : 0,
 		data : means
 	}, {
 		color : colors[4],
-		name : Tests[test] + '/(100*' + Specs['price'] + ')',
+		name : tname + '/(100*' + Specs['price'] + ')',
 		type : 'line',
 		yAxis : 1,
 		data : priceRatios
@@ -351,8 +422,8 @@ function allPlot(parallel, test, sorter) {
 		data : prices
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#" + parallel + "allplot", Tests[test] + ' (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
-	$('#' + parallel + 'allplot').highcharts().setSize(1400, 1000);
+	drawGraph("#" + parallel, Tests[test] + ' (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
+	$('#' + parallel).highcharts().setSize(1200, 800);
 }
 
 $(function() {
@@ -384,3 +455,14 @@ $(function() {
 	});
 });
 
+$('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+	currentTab = e.target.href.match(/(\w+)$/g)[0];
+	// activated tab
+	if (-1 < Groups.indexOf(currentTab)) {
+		massPlot(currentTab, 'index');
+	} else if (-1 < Parallels.indexOf(currentTab)) {
+		allPlot(currentTab, 'index', 'priceRatio');
+	} else {
+	}
+	//e.relatedTarget; // previous tab
+});

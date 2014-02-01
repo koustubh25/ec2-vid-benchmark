@@ -1,48 +1,126 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>EC2 instance benchmark result summary</title>
-		<!-- Latest compiled and minified CSS -->
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Bootstrap 101 Template</title>
 
-		<!-- Optional theme -->
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+		<!-- Bootstrap -->
+		<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
 
-		<!-- Latest compiled and minified JavaScript -->
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
 	</head>
 	<body>
-		<!-- Nav tabs -->
-		<ul class="nav nav-tabs">
+		<ul class="nav nav-tabs" id="Tabs">
 			<li class="active">
-				<a href="index.html" data-toggle="tab">Home</a>
+				<a href="#home" data-toggle="tab">Home</a>
 			</li>
 			<li>
-				<a href="size.html">Size</a>
+				<a href="#size" data-toggle="tab">Size groups</a>
 			</li>
 			<li>
-				<a href="type.html">Type</a>
+				<a href="#type" data-toggle="tab">Type groups</a>
 			</li>
 			<li>
-				<a href="family.html">Family</a>
+				<a href="#family" data-toggle="tab">Family groups</a>
 			</li>
 			<li>
-				<a href="single-all.html">Single-All</a>
+				<a href="#price" data-toggle="tab">Price groups</a>
 			</li>
 			<li>
-				<a href="multi-all.html">Multi-All</a>
+				<a href="#single" data-toggle="tab">Single</a>
+			</li>
+			<li>
+				<a href="#multi" data-toggle="tab">Multi</a>
+			</li>
+			<li>
+				<a href="#" data-toggle="tab"></a>
+			</li>
+			<li>
+				<a href="#" data-toggle="tab"></a>
 			</li>
 		</ul>
-		<!-- Tab panes -->
+		<div class="btn-group" style="margin: 9px 0 5px;">
+			<button type="button" class="btn btn-default" id="index">
+				Index
+			</button>
+			<button type="button" class="btn btn-default" id="dhrystone">
+				Dhrystone
+			</button>
+			<button type="button" class="btn btn-default" id="double">
+				Double
+			</button>
+			<button type="button" class="btn btn-default" id="execl">
+				Execl
+			</button>
+			<button type="button" class="btn btn-default" id="file256">
+				File256
+			</button>
+			<button type="button" class="btn btn-default" id="file1024">
+				File1024
+			</button>
+			<button type="button" class="btn btn-default" id="file4096">
+				File4096
+			</button>
+			<button type="button" class="btn btn-default" id="pipethru">
+				PipeThrouput
+			</button>
+			<button type="button" class="btn btn-default" id="pipecs">
+				PipeCS
+			</button>
+			<button type="button" class="btn btn-default" id="process">
+				Process
+			</button>
+			<button type="button" class="btn btn-default" id="shell1">
+				Shell1
+			</button>
+			<button type="button" class="btn btn-default" id="shell8">
+				Shell8
+			</button>
+			<button type="button" class="btn btn-default" id="overhead">
+				Overhead
+			</button>
+		</div>
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="home">
 				<div id="paravirtual" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
 				<div id="hvm" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
 			</div>
+			<div class="tab-pane fade" id="size">
+				<div id="size" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="type">
+				<div id="type" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="family">
+				<div id="family" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="price">
+				<div id="price" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="single">
+				<div id="single" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="multi">
+				<div id="multi" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="">
+				<div id="" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="">
+				<div id="" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
 		</div>
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<script src="https://code.jquery.com/jquery.js"></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 		<script src="script/modules/taffy-min.js"></script>
 		<script src="script/modules/highcharts.js"></script>
 		<script src="script/modules/highcharts-more.js"></script>
