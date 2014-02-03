@@ -12,7 +12,7 @@ import json
 import sys
 
 # Number of trial
-trial = 3
+trial = 2
 
 # Amazon Linux AMI 2013.09.2 [us-east-1]
 paravirtual_ami = 'ami-83e4bcea'
@@ -21,7 +21,8 @@ hvm_ami = 'ami-d1bfe4b8'
 
 # Confirm ~/.boto exists and contains credentials
 region = 'us-east-1'
-k_name = 'iomz@cisco-macbook'
+#k_name = 'iomz@cisco-macbook'
+k_name = 'kougaikw@cisco.com'
 s_grp = 'quick-start-1'
 
 def start_benchmark_instance(conn, instance, u_data, bdm):

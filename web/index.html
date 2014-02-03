@@ -40,12 +40,25 @@
 				<a href="#priceRange" data-toggle="tab">Price groups</a>
 			</li>
 			<li>
-				<a href="#best30" data-toggle="tab">Best 30s</a>
+				<a href="#best" data-toggle="tab">Best Ns</a>
+			</li>
+			<li>
+				<a href="#scatterPrice" data-toggle="tab">Scatter Price</a>
+			</li>
+			<li>
+				<a href="#scatterMemory" data-toggle="tab">Scatter Memory</a>
+			</li>
+			<li>
+				<a href="#scattervCPU" data-toggle="tab">Scatter vCPU</a>
 			</li>
 			<li>
 				<a href="#" data-toggle="tab"></a>
 			</li>
-		</ul>
+        </ul>
+        <div class="input-group" id="bestN">
+            <span class="input-group-addon">N = </span>
+            <input type="text" class="form-control" placeholder="bestN">
+        </div>
 		<div class="btn-group" style="margin: 9px 0 5px;" id="grpbtns">
 			<button type="button" class="btn btn-info" id="g_size">
 				Size Variations
@@ -146,8 +159,17 @@
 			<div class="tab-pane fade" id="priceRange">
 				<div id="priceRange_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
 			</div>
-			<div class="tab-pane fade" id="best30">
-				<div id="best30_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			<div class="tab-pane fade" id="best">
+				<div id="best_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="scatterPrice">
+				<div id="scatterPrice_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="scatterMemory">
+				<div id="scatterMemory_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
+			</div>
+			<div class="tab-pane fade" id="scattervCPU">
+				<div id="scattervCPU_chart" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
 			</div>
 			<div class="tab-pane fade" id="">
 				<div id="" class="min-width: 600px; min-height: 800px; margin: 0 auto"></div>
@@ -157,11 +179,10 @@
 		<script src="https://code.jquery.com/jquery.js"></script>
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-		<script src="script/modules/taffy-min.js"></script>
-		<script src="script/modules/highcharts.js"></script>
-		<script src="script/modules/highcharts-more.js"></script>
-		<script src="script/modules/exporting.js"></script>
-		<script src="script/modules/grid.js"></script>
+		<script src="https://raw.github.com/typicaljoe/taffydb/master/taffy.js"></script>
+		<script src="//code.highcharts.com/highcharts.src.js"></script>
+		<script src="//code.highcharts.com/highcharts-more.src.js"></script>
+		<script src="//code.highcharts.com/modules/exporting.src.js"></script>
 		<script src="script/unixbench-visualizer.js"></script>
 	</body>
 </html>
