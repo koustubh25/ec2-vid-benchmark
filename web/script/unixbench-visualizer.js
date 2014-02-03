@@ -25,9 +25,9 @@ var Sorters = {
 	"price" : "Cost"
 };
 var Scatters = {
-    "scatterPrice" : "price",
-    "scatterMemory" : "memory",
-    "scattervCPU" : "vcpu"
+	"scatterPrice" : "price",
+	"scatterMemory" : "memory",
+	"scattervCPU" : "vcpu"
 };
 var Specs = {
 	"type" : "Instance Type",
@@ -47,7 +47,8 @@ var Specs = {
 };
 var SpecUnits = {
 	"price" : "$/Hr",
-	"memory" : "GiB"
+	"memory" : "GiB",
+	"vcpu" : "vCPU"
 }
 var Tests = {
 	"dhrystone" : "Dhrystone 2 using register variables",
@@ -224,7 +225,7 @@ function plotPerGroup(parallel, group, test) {
 		}];
 		//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
 		drawGraph("#" + group + "_chart", Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, tool, series);
-
+		$("#" + group + "_chart").highcharts().setSize(900, 600);
 	});
 }
 
@@ -384,10 +385,7 @@ function plotBest(parallel, test, sorter, bestLimit) {
 		var tname = Tests[test] + ' (' + TestUnits[test] + ')';
 	else
 		var tname = Tests[test];
-	if (test == 'overhead')
-		var order = ""
-	else
-		var order = " desc"
+	var order = " desc"
 
 	var names = logs({
 		'test' : test,
@@ -479,7 +477,7 @@ function plotBest(parallel, test, sorter, bestLimit) {
 		varianceSum += (means[i] - mean) * (means[i] - mean);
 	var std = Math.sqrt(varianceSum / (means.length - 1));
 	means = [];
-    mean = parseFloat(mean.toFixed(2));
+	mean = parseFloat(mean.toFixed(2));
 	for ( i = 0; i < bestLimit; i++)
 		means.push(mean);
 
@@ -570,8 +568,8 @@ function plotBest(parallel, test, sorter, bestLimit) {
 		data : zscores
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#best_chart", 'Best 30 ' + Tests[test] + 's (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
-	$("#best_chart").highcharts().setSize(1000, 700);
+	drawGraph("#best_chart", 'Best ' + bestLimit + ' ' + Tests[test] + 's (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, 45, yaxis, tool, series);
+	$("#best_chart").highcharts().setSize(1200, 700);
 }
 
 function plotScatter(parallel, test, scatter) {
@@ -583,14 +581,12 @@ function plotScatter(parallel, test, scatter) {
 		},
 		cloud : 'EC2'
 	}).map(function(i) {
-        if (scatter=='price')
-            var val = i.price;
-        else if (scatter=='memory')
-            var val = i.memory;
-        else if (scatter=='vcpu')
-            var val = i.vcpu;
-        else
-            var val = i.priceRange;
+		if (scatter == 'price')
+			var val = i.price;
+		else if (scatter == 'memory')
+			var val = i.memory;
+		else if (scatter == 'vcpu')
+			var val = i.vcpu;
 		return {
 			name : i.name,
 			x : val,
@@ -606,14 +602,12 @@ function plotScatter(parallel, test, scatter) {
 		},
 		cloud : 'Rackspace'
 	}).map(function(i) {
-        if (scatter=='price')
-            var val = i.price;
-        else if (scatter=='memory')
-            var val = i.memory;
-        else if (scatter=='vcpu')
-            var val = i.vcpu;
-        else
-            var val = i.priceRange;
+		if (scatter == 'price')
+			var val = i.price;
+		else if (scatter == 'memory')
+			var val = i.memory;
+		else if (scatter == 'vcpu')
+			var val = i.vcpu;
 		return {
 			name : i.name,
 			x : val,
@@ -628,14 +622,12 @@ function plotScatter(parallel, test, scatter) {
 			like : 'hvm'
 		}
 	}).map(function(i) {
-        if (scatter=='price')
-            var val = i.price;
-        else if (scatter=='memory')
-            var val = i.memory;
-        else if (scatter=='vcpu')
-            var val = i.vcpu;
-        else
-            var val = i.priceRange;
+		if (scatter == 'price')
+			var val = i.price;
+		else if (scatter == 'memory')
+			var val = i.memory;
+		else if (scatter == 'vcpu')
+			var val = i.vcpu;
 		return {
 			name : i.name,
 			x : val,
@@ -643,21 +635,21 @@ function plotScatter(parallel, test, scatter) {
 		};
 	});
 
-	$('#'+currentTab+'_chart').highcharts({
+	$('#' + currentTab + '_chart').highcharts({
 		chart : {
 			type : 'scatter',
 			zoomType : 'xy'
 		},
 		title : {
-			text : Tests[test] + ' vs ' + Specs['price']
+			text : Tests[test] + ' vs ' + Specs[scatter]
 		},
-        subtitle : {
-            text : 'Showing ' + parallel + ' process results'
-        },
+		subtitle : {
+			text : 'Showing ' + parallel + ' process results'
+		},
 		xAxis : {
 			title : {
 				enabled : true,
-				text : Specs['price']
+				text : Specs[scatter]
 			},
 			startOnTick : true,
 			endOnTick : true,
@@ -696,10 +688,10 @@ function plotScatter(parallel, test, scatter) {
 						}
 					}
 				},
-                tooltip : {
-                    crosshairs : true,
-		            pointFormat : '<b>{point.name}<b><br>{point.x} ' + SpecUnits['price'] + ', {point.y} ' + TestUnits[test],
-                }
+				tooltip : {
+					crosshairs : true,
+					pointFormat : '<b>{point.name}<b><br>{point.x} ' + SpecUnits[scatter] + ', {point.y} ' + TestUnits[test],
+				}
 			}
 		},
 		series : [{
@@ -716,15 +708,15 @@ function plotScatter(parallel, test, scatter) {
 			data : hvms
 		}]
 	});
-
+	$('#' + currentTab + '_chart').highcharts().setSize(900, 600);
 }
 
 function replot() {
 	if (-1 < Groups.indexOf(currentTab)) {
 		currentGroup = currentTab;
 		plotPerGroup(currentParallel, currentGroup, currentTest);
-	} else if (currentTab in Scatters) {
-        currentScatter = Scatters[currentTab];
+	} else if ( currentTab in Scatters) {
+		currentScatter = Scatters[currentTab];
 		plotScatter(currentParallel, currentTest, currentScatter);
 	} else if (currentTab == 'best') {
 		plotBest(currentParallel, currentTest, currentSorter, currentBestLimit);
@@ -754,7 +746,9 @@ $(function() {
 				parallel : v['parallel'],
 				cloud : v['cloud'],
 				price : v['price'],
-				priceRatio : v['priceRatio']
+				priceRatio : v['priceRatio'],
+				memory : v['memory'],
+				vcpu : v['vcpu']
 			});
 		});
 	});
@@ -780,8 +774,8 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
 		$('#testbtns').show();
 		$('#sortbtns').show();
 		$('#parallelbtns').show();
-	} else if (currentTab in Scatters) {
-        currentScatter = Scatters[currentTab];
+	} else if ( currentTab in Scatters) {
+		currentScatter = Scatters[currentTab];
 		plotScatter(currentParallel, currentTest, currentScatter);
 		// If in the scatter tabs
 		$('#bestN').hide();
@@ -801,13 +795,13 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
 });
 
 $('#bestNform').keypress(function(e) {
-    if(e.which == 13) {
-        currentBestLimit = parseInt($('#bestNform').prop('value'));
-        if (currentBestLimit === parseInt(currentBestLimit))
-		    plotBest(currentParallel, currentTest, currentSorter, currentBestLimit);
-        else
-            currentBestLimit = 30;
-    }
+	if (e.which == 13) {
+		currentBestLimit = parseInt($('#bestNform').prop('value'));
+		if (currentBestLimit === parseInt(currentBestLimit))
+			plotBest(currentParallel, currentTest, currentSorter, currentBestLimit);
+		else
+			currentBestLimit = 30;
+	}
 });
 
 $('#g_size').on('click', function(e) {
