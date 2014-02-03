@@ -64,7 +64,7 @@ def parse_log(log):
             sqsum = 0
             for i in d_arr:
                 sqsum += (i - mean)*(i - mean)
-            sd = sqrt(sqsum/(len(d_arr)))
+            sd = sqrt(sqsum/(len(d_arr)-1))
             if p not in log_dict:
                 log_dict[p] = {}
             log_dict[p][Tests[t]] = {"mean": mean, "sd": sd}
@@ -82,7 +82,10 @@ def main():
 
         if sys.argv[1] == 'unixbench':
             logs = []
-            for instance_name in instances_dict.keys():
+            count = 0
+            instance_names = instances_dict.keys()
+            n_instances = len(instance_names)
+            for instance_name in instance_names:
                 log_raw = {}
                 try:
                     instance_logs = Table(instance_name)
@@ -100,6 +103,8 @@ def main():
                 #pprint(log_raw)
                 #logs[instance_name] = parse_log(log_raw)
                 log_dict = parse_log(log_raw)
+                count += 1
+                print "*** [%d/%d] Log data from %s loaded! ***" % (count, n_instances, instance_name)
                 for p in log_dict.keys():
                     for t in log_dict[p].keys():
                         log = {}
@@ -114,25 +119,38 @@ def main():
 
                         logs.append(log)
 
-            with open('web/data/unixbench.json', 'w') as outfile:
+            result_file = 'web/data/unixbench.json'
+            with open(result_file, 'w') as outfile:
                 js.dump(logs, fp=outfile, indent=4*' ')
+            print "+ " + result_file + " generated!"
+            print "*** Done! ***"
         elif sys.argv[1] == 'group':
             try:
                 logs = json.load(open("web/data/unixbench.json", "r"))
             except IOError:
-                print "*** web/data/unixbench.json not found! Create one with %s unixbench ***" % sys.argv[0]
+                print "- web/data/unixbench.json not found! Create one with %s unixbench ***" % sys.argv[0]
                 sys.exit(1)
             sizes = []
             types = []
             families = []
+            vcpus = []
+            memoryRanges = []
+            priceRanges = []
             for v in instances_dict.values():
                 if v['size'] not in sizes:
                     sizes.append(v['size'])
-                elif v['type'] not in types:
+                if v['type'] not in types:
                     types.append(v['type'])
-                elif v['family'] not in families:
+                if v['family'] not in families:
                     families.append(v['family'])
-            for g in ['size','type','family']:
+                if v['vcpu'] not in vcpus:
+                    vcpus.append(v['vcpu'])
+                if v['memoryRange'] not in memoryRanges:
+                    memoryRanges.append(v['memoryRange'])
+                if v['priceRange'] not in priceRanges:
+                    priceRanges.append(v['priceRange'])
+
+            for g in ['size','type','family','vcpu','memoryRange','priceRange']:
                 for t in Tests:
                     for p in ['single', 'multi']:
                         index_dict = {}
@@ -142,6 +160,12 @@ def main():
                             groups = types
                         elif g=='family':
                             groups = families
+                        elif g=='vcpu':
+                            groups = vcpus
+                        elif g=='memoryRange':
+                            groups = memoryRanges
+                        elif g=='priceRange':
+                            groups = priceRanges
                         else:
                             groups = []
                         for gs in groups:
@@ -163,8 +187,11 @@ def main():
                             mmin = min(means)
                             mmax = max(means)
                             index_dict[gs] = {'mean':mean, 'min':mmin, 'max':mmax, 'num':len(means), 'cloud':cloud, 'parallel':p}
-                        with open('web/data/ub_'+g+'_'+t+'.json', 'w') as outfile:
+                        result_file = 'web/data/ub_'+g+'_'+t+'_'+p+'.json'
+                        with open(result_file, 'w') as outfile:
                             js.dump(index_dict, fp=outfile, indent=4*' ')
+                        print "+ " + result_file + " generated!"
+            print "*** Done! ***"
         else:
             print "usage: %s [unixbench|group]" % sys.argv[0]
     else:

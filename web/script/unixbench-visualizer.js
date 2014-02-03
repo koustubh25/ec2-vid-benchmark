@@ -10,15 +10,18 @@
 
 var instances = TAFFY();
 var logs = TAFFY();
-var table = TAFFY();
 var currentTab = 'home';
-var colors = ['#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92'];
+var currentTest = "index";
+var currentParallel = "multi";
+var currentSorter = "mean";
+var currentGroup = "vcpu"
+var colors = Highcharts.getOptions().colors;
 var Parallels = ['single', 'multi'];
-var Groups = ['size', 'type', 'family', 'price'];
+var Groups = ['size', 'type', 'family', 'vcpu', 'memoryRange', 'priceRange'];
 var Sorters = {
-	"priceRatio" : "Performance per Price",
+	"priceRatio" : "Efficiency",
 	"mean" : "Performance",
-	"price" : "Price"
+	"price" : "Cost"
 };
 var Specs = {
 	"type" : "Instance Type",
@@ -32,7 +35,9 @@ var Specs = {
 	"storage" : "Instance Storage (GB)",
 	"ecu" : "ECU",
 	"network" : "Network Performance",
-	"size" : "Instance Size"
+	"size" : "Instance Size",
+	"memoryRange" : "Memory Group",
+	"priceRange" : "Price Group"
 };
 var Tests = {
 	"dhrystone" : "Dhrystone 2 using register variables",
@@ -101,27 +106,288 @@ function drawGraph(el, title, subtitle, xaxis, rot, yaxis, tool, series) {
 	});
 }
 
-function plotGroup(group, test, parallel) {
-	/*
-	 var el = document.createElement("div");
-	 el.id = test;
-	 el.style = "min-width: 600px; height: 800px; margin: 0 auto";
-	 document.getElementById(group + "_" + parallel).appendChild(el);
-	 */
+function plotPerGroup(parallel, group, test) {
+	$.getJSON("data/ub_" + group + "_" + test + "_" + parallel + ".json", function(d) {
+		var groupResults = TAFFY();
+		$.each(d, function(k, v) {
+			groupResults.insert({
+				'test' : test,
+				'parallel' : v['parallel'],
+				'name' : k,
+				'range' : [v['min'], v['max']],
+				'mean' : v['mean'],
+				'num' : v['num'],
+				'cloud' : v['cloud'],
+			});
+		});
+		if (test != 'index')
+			var tname = Tests[test] + ' (' + TestUnits[test] + ')';
+		else
+			var tname = Tests[test];
+		var names = groupResults({
+			'test' : test,
+			'parallel' : parallel
+		}).order('mean').map(function(i) {
+			return i.name;
+		});
+		var ec2means = groupResults({
+			'test' : test,
+			'parallel' : parallel
+		}).order('mean').map(function(i) {
+			if (i.cloud == 'EC2') {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : parseFloat(i.mean.toFixed(2))
+				};
+			} else {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : 0
+				};
+			}
+		});
+		var rackmeans = groupResults({
+			'test' : test,
+			'parallel' : parallel
+		}).order('mean').map(function(i) {
+			if (i.cloud != 'EC2') {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : parseFloat(i.mean.toFixed(2))
+				};
+			} else {
+				return {
+					name : i.cloud + ': ' + i.name,
+					y : 0
+				};
+			}
+		});
+		var ranges = groupResults({
+			'test' : test,
+			'parallel' : parallel
+		}).order('mean').map(function(i) {
+			return [parseFloat(i.range[0].toFixed(2)), parseFloat(i.range[1].toFixed(2))];
+		});
+		var nums = groupResults({
+			'test' : test,
+			'parallel' : parallel
+		}).order('mean').map(function(i) {
+			return parseFloat(i.num.toFixed(2));
+		});
+		var yaxis = [{
+			title : {
+				text : tname
+			}
+		}, {
+			title : {
+				gridLineWidth : 0,
+				text : "Number of instances"
+			},
+			opposite : true
+		}];
+		var tool = {
+			shared : true
+		};
+		var series = [{
+			name : 'Min-Max range',
+			type : 'arearange',
+			yAxis : 0,
+			data : ranges
+		}, {
+			color : colors[5],
+			name : 'EC2 ' + tname,
+			type : 'column',
+			yAxis : 0,
+			data : ec2means
+		}, {
+			color : colors[3],
+			name : 'Rackspace ' + tname,
+			type : 'column',
+			yAxis : 0,
+			data : rackmeans
+		}, {
+			color : colors[1],
+			name : 'Number of instances',
+			type : 'line',
+			yAxis : 1,
+			data : nums
+		}];
+		//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
+		drawGraph("#" + group + "_chart", Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, tool, series);
+
+	});
+}
+
+function plotGroupVariations(sorter) {
+	var virt = {
+		'paravirtual' : 0,
+		'hvm' : 0
+	};
+	for (v in virt ) {
+		var sorterArr = instances({
+			virt : v,
+			ebs : false
+		}).order(sorter).map(function(i) {
+            if (sorter == 'size')
+				return i.size;
+            else if (sorter == 'type')
+				return i.type;
+            else if (sorter == 'family')
+				return i.family;
+            else if (sorter == 'vcpu')
+				return i.vcpu;
+			else if (sorter == 'memoryRange')
+				return i.memoryRange;
+			else if (sorter == 'priceRange')
+				return i.priceRange;
+			else if (sorter == 'size')
+				return i.size;
+		});
+		var categories = [];
+		$.each(sorterArr, function(i, el) {
+			if ($.inArray(el, categories) === -1)
+				categories.push(el);
+		});
+		var name = Specs[sorter] + ' variations (' + v + ')';
+		var data = [];
+		var color_dict = {};
+		for (var i = 0; i < categories.length; i++) {
+			var nsorter = categories[i];
+			color_dict[nsorter] = colors[i % 9];
+			if (sorter == 'size') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					size : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			}else if (sorter == 'type') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					type : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			}else if (sorter == 'family') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					family : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			}else if (sorter == 'vcpu') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					vcpu : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			} else if (sorter == 'memoryRange') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					memoryRange : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			} else if (sorter == 'priceRange') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					priceRange : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			} else if (sorter == 'size') {
+				var subcats = instances({
+					virt : v,
+					ebs : false,
+					size : nsorter
+				}).order(sorter).map(function(i) {
+					return i.name.split("_")[0];
+				});
+			}
+			var caty = parseFloat((100 * (subcats.length / sorterArr.length)).toFixed(2));
+			data.push({
+				color : colors[i % 9],
+				name : categories[i],
+				y : caty,
+			});
+		}
+		var subData = instances({
+			virt : v,
+			ebs : false
+		}).order(sorter).map(function(i) {
+			return {
+				name : i.name.split("_")[0],
+				y : parseFloat((100 * (1 / sorterArr.length)).toFixed(2)),
+				color : color_dict[i.vcpu]
+			};
+		});
+
+		// Create the chart
+		$('#' + v + "_chart").highcharts({
+			chart : {
+				type : 'pie'
+			},
+			title : {
+				text : name
+			},
+			plotOptions : {
+				pie : {
+					allowPointSelect : true,
+					shadow : false,
+					center : ['50%', '50%']
+				}
+			},
+			tooltip : {
+				valueSuffix : '%'
+			},
+			series : [{
+				name : Specs[sorter] + ' Ratio',
+				data : data,
+				size : '60%',
+				dataLabels : {
+					formatter : function() {
+						return this.y > 5 ? this.point.name : null;
+					},
+					color : 'white',
+					distance : -30
+				}
+			}, {
+				name : 'Instance',
+				data : subData,
+				size : '70%',
+				innerSize : '60%'
+			}]
+		});
+		$('#' + v + "_chart").highcharts().setSize(800, 600);
+	}
+}
+
+function plotBest30(parallel, test, sorter) {
 	if (test != 'index')
 		var tname = Tests[test] + ' (' + TestUnits[test] + ')';
 	else
 		var tname = Tests[test];
-	var names = table({
+	if (test == 'overhead')
+		var order = ""
+	else
+		var order = " desc"
+	var names = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('mean').map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		return i.name;
 	});
-	var ec2means = table({
+	var ec2means = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('mean').map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		if (i.cloud == 'EC2') {
 			return {
 				name : i.cloud + ': ' + i.name,
@@ -134,10 +400,10 @@ function plotGroup(group, test, parallel) {
 			};
 		}
 	});
-	var rackmeans = table({
+	var rackmeans = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order('mean').map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		if (i.cloud != 'EC2') {
 			return {
 				name : i.cloud + ': ' + i.name,
@@ -150,207 +416,10 @@ function plotGroup(group, test, parallel) {
 			};
 		}
 	});
-	var ranges = table({
-		'test' : test,
-		'parallel' : parallel
-	}).order('mean').map(function(i) {
-		return [parseFloat(i.range[0].toFixed(2)), parseFloat(i.range[1].toFixed(2))];
-	});
-	var nums = table({
-		'test' : test,
-		'parallel' : parallel
-	}).order('mean').map(function(i) {
-		return parseFloat(i.num.toFixed(2));
-	});
-	var yaxis = [{
-		title : {
-			text : tname
-		}
-	}, {
-		title : {
-			gridLineWidth : 0,
-			text : "Number of instances"
-		},
-		opposite : true
-	}];
-	var tool = {
-		shared : true
-	};
-	var series = [{
-		name : 'Min-Max range',
-		type : 'arearange',
-		yAxis : 0,
-		data : ranges
-	}, {
-		color : colors[5],
-		name : 'EC2 ' + tname,
-		type : 'column',
-		yAxis : 0,
-		data : ec2means
-	}, {
-		color : colors[3],
-		name : 'Rackspace ' + tname,
-		type : 'column',
-		yAxis : 0,
-		data : rackmeans
-	}, {
-		color : colors[1],
-		name : 'Number of instances',
-		type : 'line',
-		yAxis : 1,
-		data : nums
-	}];
-	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#" + group, Tests[test] + ' (' + parallel + ')', 'Grouped by ' + Specs[group], names, 0, yaxis, tool, series);
-}
-
-function massPlot(group, test) {
-	$.getJSON("data/ub_" + group + "_" + test + ".json", function(d) {
-		table = TAFFY();
-		$.each(d, function(k, v) {
-			table.insert({
-				'test' : test,
-				'parallel' : v['parallel'],
-				'name' : k,
-				'range' : [v['min'], v['max']],
-				'mean' : v['mean'],
-				'num' : v['num'],
-				'cloud' : v['cloud'],
-			});
-		});
-		plotGroup(group, test, 'multi');
-	});
-}
-
-function plotInstances() {
-	var virt = {
-		'paravirtual' : 0,
-		'hvm' : 0
-	};
-	for (v in virt ) {
-		var names = instances({
-			virt : v,
-			ebs : false
-		}).order('price').map(function(i) {
-			return i.name.split("_")[0];
-		});
-		var vcpus = instances({
-			virt : v,
-			ebs : false
-		}).order('price').map(function(i) {
-			return i.vcpu;
-		});
-		var memories = instances({
-			virt : v,
-			ebs : false
-		}).order('price').map(function(i) {
-			return i.memory;
-		});
-		var ec2prices = instances({
-			virt : v,
-			ebs : false
-		}).order('price').map(function(i) {
-			if (i.cloud == 'EC2') {
-				return {
-					name : i.cloud + ': ' + i.name,
-					y : i.price
-				};
-			} else {
-				return {
-					name : i.cloud + ': ' + i.name,
-					y : 0
-				};
-			}
-		});
-		var rackprices = instances({
-			virt : v,
-			ebs : false
-		}).order('price').map(function(i) {
-			if (i.cloud != 'EC2') {
-				return {
-					name : i.cloud + ': ' + i.name,
-					y : i.price
-				};
-			} else {
-				return {
-					name : i.cloud + ': ' + i.name,
-					y : 0
-				};
-			}
-		});
-		var yaxis = [{
-			title : {
-				text : Specs['price']
-			},
-			opposite : true
-		}, {
-			title : {
-				text : Specs['vcpu']
-			}
-		}, {
-			title : {
-				text : Specs['memory']
-			}
-		}];
-		var tool = {
-			shared : true
-		};
-		var series = [{
-			color : colors[5],
-			name : 'EC2 ' + Specs['price'],
-			type : 'column',
-			yAxis : 0,
-			data : ec2prices
-		}, {
-			color : colors[3],
-			name : 'Rackspace ' + Specs['price'],
-			type : 'column',
-			yAxis : 0,
-			data : rackprices
-		}, {
-			name : Specs['vcpu'],
-			type : 'line',
-			yAxis : 1,
-			data : vcpus
-		}, {
-			name : Specs['memory'],
-			type : 'line',
-			yAxis : 2,
-			data : memories
-		}];
-		//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-		drawGraph("#" + v, "Instance Specifications (" + v + ")", 'EC2+Rackspace', names, 73, yaxis, tool, series);
-	}
-}
-
-function allPlot(parallel, test, sorter) {
-	if (test != 'index')
-		var tname = Tests[test] + ' (' + TestUnits[test] + ')';
-	else
-		var tname = Tests[test];
-	if ( typeof (sorter) === 'undefined')
-		sorter = 'priceRatio';
-	var names = logs({
-		'test' : test,
-		'parallel' : parallel
-	}).order(sorter).limit(20).map(function(i) {
-		return i.name;
-	});
-	var means = logs({
-		'test' : test,
-		'parallel' : parallel
-	}).order(sorter).limit(20).map(function(i) {
-		ccolor = (i.cloud == 'EC2') ? colors[5] : colors[3];
-		return {
-			color : ccolor,
-			name : i.cloud + ': ' + i.name,
-			y : parseFloat(i.mean.toFixed(2))
-		};
-	});
 	var sds = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).limit(20).map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		var low = (i.mean - i.sd).toFixed(2);
 		var high = (i.mean + i.sd).toFixed(2);
 		return {
@@ -362,7 +431,7 @@ function allPlot(parallel, test, sorter) {
 	var priceRatios = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).limit(20).map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		/*return i.mean/(i.price*100);*/
 		return {
 			name : i.cloud + ': ' + i.name,
@@ -372,7 +441,7 @@ function allPlot(parallel, test, sorter) {
 	var prices = logs({
 		'test' : test,
 		'parallel' : parallel
-	}).order(sorter).limit(20).map(function(i) {
+	}).order(sorter + order).limit(30).map(function(i) {
 		return {
 			name : i.cloud + ': ' + i.name,
 			y : i.price
@@ -396,6 +465,13 @@ function allPlot(parallel, test, sorter) {
 	var tool = {
 		shared : true
 	};
+	// Reverse the order to show the plot collectly
+    names.reverse();
+	sds.reverse();
+	ec2means.reverse();
+	rackmeans.reverse();
+	priceRatios.reverse();
+	prices.reverse();
 	var series = [{
 		color : colors[2],
 		name : 'Standard Deviation',
@@ -404,10 +480,16 @@ function allPlot(parallel, test, sorter) {
 		data : sds
 	}, {
 		color : colors[5],
-		name : tname,
+		name : 'EC2 ' + tname,
 		type : 'column',
 		yAxis : 0,
-		data : means
+		data : ec2means
+	}, {
+		color : colors[3],
+		name : 'Rackspace ' + tname,
+		type : 'column',
+		yAxis : 0,
+		data : rackmeans
 	}, {
 		color : colors[4],
 		name : tname + '/(100*' + Specs['price'] + ')',
@@ -422,18 +504,30 @@ function allPlot(parallel, test, sorter) {
 		data : prices
 	}];
 	//drawGraph(el, title, subtitle, xaxis, yaxis, yunit, series)
-	drawGraph("#" + parallel, Tests[test] + ' (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
-	$('#' + parallel).highcharts().setSize(1200, 800);
+	drawGraph("#best30_chart", 'Best 30 ' + Tests[test] + 's (' + parallel + ')', 'Sorted by ' + Sorters[sorter], names, -73, yaxis, tool, series);
+	$("#best30_chart").highcharts().setSize(1000, 700);
+}
+
+function replot() {
+	if (-1 < Groups.indexOf(currentTab)) {
+        currentGroup = currentTab;
+		plotPerGroup(currentParallel, currentGroup, currentTest);
+	} else if (currentTab == 'best30') {
+		plotBest30(currentParallel, currentTest, currentSorter);
+	}
 }
 
 $(function() {
+	$('#testbtns').hide();
+	$('#sortbtns').hide();
+	$('#parallelbtns').hide();
 	$.getJSON("data/instances.json", function(d) {
 		$.each(d, function(k, v) {
 			//document.getElementById("debug").innerHTML += k + "<br>";
 			instances.insert(v);
 		});
-		if (document.getElementById('paravirtual') != null)
-			plotInstances();
+		//plotInstances('price');
+		plotGroupVariations(currentGroup);
 	});
 	$.getJSON("data/unixbench.json", function(d) {
 		$.each(d, function(k, v) {
@@ -448,10 +542,6 @@ $(function() {
 				priceRatio : v['priceRatio']
 			});
 		});
-		if (document.getElementById('singleallplot') != null)
-			allPlot('single', 'index', 'priceRatio');
-		if (document.getElementById('multiallplot') != null)
-			allPlot('multi', 'index', 'priceRatio');
 	});
 });
 
@@ -459,10 +549,122 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
 	currentTab = e.target.href.match(/(\w+)$/g)[0];
 	// activated tab
 	if (-1 < Groups.indexOf(currentTab)) {
-		massPlot(currentTab, 'index');
-	} else if (-1 < Parallels.indexOf(currentTab)) {
-		allPlot(currentTab, 'index', 'priceRatio');
-	} else {
+        currentGroup = currentTab
+		plotPerGroup(currentParallel, currentGroup, currentTest);
+		// If in a group tab
+		$('#grpbtns').hide();
+		$('#testbtns').show();
+		$('#sortbtns').hide();
+		$('#parallelbtns').show();
+	} else if (currentTab == 'best30') {
+		plotBest30(currentParallel, currentTest, currentSorter);
+		// If in the Best 30s tab
+		$('#grpbtns').hide();
+		$('#testbtns').show();
+		$('#sortbtns').show();
+		$('#parallelbtns').show();
+	} else {// If in the Home tab
+		plotGroupVariations(currentGroup);
+		$('#grpbtns').show();
+		$('#testbtns').hide();
+		$('#sortbtns').hide();
+		$('#parallelbtns').hide();
 	}
 	//e.relatedTarget; // previous tab
+});
+
+$('#g_size').on('click', function(e) {
+	currentGroup = 'size';
+	plotGroupVariations(currentGroup);
+});
+$('#g_type').on('click', function(e) {
+	currentGroup = 'type';
+	plotGroupVariations(currentGroup);
+});
+$('#g_family').on('click', function(e) {
+	currentGroup = 'family';
+	plotGroupVariations(currentGroup);
+});
+$('#g_vcpu').on('click', function(e) {
+	currentGroup = 'vcpu';
+	plotGroupVariations(currentGroup);
+});
+$('#g_memoryRange').on('click', function(e) {
+	currentGroup = 'memoryRange';
+	plotGroupVariations(currentGroup);
+});
+$('#g_priceRange').on('click', function(e) {
+	currentGroup = 'priceRange';
+	plotGroupVariations(currentGroup);
+});
+
+$('#s_priceRatio').on('click', function(e) {
+	currentSorter = 'priceRatio';
+    replot();
+});
+$('#s_mean').on('click', function(e) {
+	currentSorter = 'mean';
+    replot();
+});
+
+$('#p_single').on('click', function(e) {
+	currentParallel = 'single';
+    replot();
+});
+$('#p_multi').on('click', function(e) {
+	currentParallel = 'multi';
+    replot();
+});
+
+$('#index').on('click', function(e) {
+	currentTest = 'index';
+    replot();
+});
+$('#dhrystone').on('click', function(e) {
+	currentTest = 'dhrystone';
+    replot();
+});
+$('#double').on('click', function(e) {
+	currentTest = 'double';
+    replot();
+});
+$('#execl').on('click', function(e) {
+	currentTest = 'execl';
+    replot();
+});
+$('#file256').on('click', function(e) {
+	currentTest = 'file256';
+    replot();
+});
+$('#file1024').on('click', function(e) {
+	currentTest = 'file1024';
+    replot();
+});
+$('#file4096').on('click', function(e) {
+	currentTest = 'file4096';
+    replot();
+});
+$('#pipethru').on('click', function(e) {
+	currentTest = 'pipethru';
+    replot();
+});
+$('#pipecs').on('click', function(e) {
+	currentTest = 'pipecs';
+    replot();
+});
+$('#process').on('click', function(e) {
+	currentTest = 'process';
+    replot();
+});
+$('#shell1').on('click', function(e) {
+	currentTest = 'shell1';
+    replot();
+});
+$('#shell8').on('click', function(e) {
+	currentTest = 'shell8';
+    replot();
+});
+$('#overhead').on('click', function(e) {
+	currentTest = 'overhead';
+    replot();
 });

@@ -3,6 +3,7 @@
 from HTMLParser import HTMLParser
 from pprint import pprint
 from time import sleep
+from os import mkdir, path
 import json
 import simplejson as js
 import sys
@@ -20,7 +21,9 @@ Specs = [
     "storage",
     "ecu",
     "network",
-    "size"
+    "size",
+    "memoryRange",
+    "priceRange"
 ]
 
 SpecNames = [
@@ -35,7 +38,9 @@ SpecNames = [
     "Instance Storage (GB)",
     "ECU",
     "Network Performance",
-    "Instance Size"
+    "Instance Size",
+    "Memory Group",
+    "Price Group"
 ]
 
 # Retrieve instance types' detail
@@ -166,6 +171,62 @@ class VirtTypeParser(HTMLParser):
             virt_types = None
         return virt_types
 
+# Memory Range
+def get_memory_range(memory):
+    if 0 < memory < 2:
+        memoryRange = '<2 GiB'
+    elif 4 <= memory < 8:
+        memoryRange = '4-8 GiB'
+    elif 8 <= memory < 15:
+        memoryRange = '8-15 GiB'
+    elif 15 <= memory < 30:
+        memoryRange = '15-30 GiB'
+    elif 30 <= memory < 60:
+        memoryRange = '30-60 GiB'
+    elif 60 <= memory < 90:
+        memoryRange = '60-90 GiB'
+    elif 90 <= memory < 120:
+        memoryRange = '90-120 GiB'
+    elif 120 <= memory < 150:
+        memoryRange = '120-150 GiB'
+    elif 150 <= memory < 200:
+        memoryRange = '150-200 GiB'
+    elif 200 <= memory < 250:
+        memoryRange = '200-250 GiB'
+    else:
+        memoryRange = '250 GiB<'
+
+    return memoryRange
+
+# Price Range
+def get_price_range(price):
+    if 0 < price < 0.1:
+        priceRange = '<$0.1'
+    elif 0.1 <= price < 0.2 :
+        priceRange = '$0.1-0.2'
+    elif 0.2 <= price < 0.3 :
+        priceRange = '$0.2-0.3'
+    elif 0.3 <= price < 0.4 :
+        priceRange = '$0.3-0.4'
+    elif 0.4 <= price < 0.5 :
+        priceRange = '$0.4-0.5'
+    elif 0.5 <= price < 0.75 :
+        priceRange = '$0.5-0.75'
+    elif 0.75 <= price < 1 :
+        priceRange = '$0.75-1'
+    elif 1 <= price < 2:
+        priceRange = '$1-2'
+    elif 2 <= price < 3:
+        priceRange = '$2-3'
+    elif 3 <= price < 4:
+        priceRange = '$3-4'
+    elif 4 <= price < 5:
+        priceRange = '$4-5'
+    else:
+        priceRange = '$5<'
+
+    return priceRange
+
 def update_instance_list(cloud):
     ec2only = True if cloud == 'ec2only' else False
 
@@ -260,6 +321,8 @@ def update_instance_list(cloud):
                     Specs[9]: ecu,                  # ECU
                     Specs[10]: i[8],                # Network Performance
                     Specs[11]: i[1].split('.')[1],  # Instance size
+                    Specs[12]: get_memory_range(float(i[5])),
+                    Specs[13]: get_price_range(float(price)),
                     "name": instance_name
                 }
                 instance_dict[instance_name] = instance
@@ -294,6 +357,8 @@ def update_instance_list(cloud):
                 Specs[9]: float('0'),                      # ECU
                 Specs[10]: network,                        # Network Performance
                 Specs[11]: name.split('_')[0],             # Instance Size
+                Specs[12]: get_memory_range(i["Memory (GiB)"]),
+                Specs[13]: get_price_range(float(i["price"])),
                 "name": instance_name
             }
             instance_dict[instance_name] = instance
@@ -303,11 +368,19 @@ def update_instance_list(cloud):
         return instance_dict
 
 def main():
+    datadir = 'web/data'
+    if path.isdir(datadir):
+        pass
+    elif path.isfile(datadir):
+        raise OSError("a file with the same name as the desired dir, '%s', already exists." % datadir)
+    else:
+        head, tail = path.split(datadir)
+        if tail:
+            mkdir(datadir)
     if len(sys.argv) == 2 and sys.arv[1] == 'ec2':
         update_instance_list('ec2only')
     else:
         instance_dict = update_instance_list('')
-
     with open('web/data/instances.json', 'w') as outfile:
             js.dump(instance_dict, fp=outfile, indent=4*' ')
 
