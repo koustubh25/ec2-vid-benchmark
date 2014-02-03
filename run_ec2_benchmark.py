@@ -86,7 +86,7 @@ def main():
         sys.exit(1)
 
     for k, v in instances_dict.iteritems():
-        if v['Cloud'] == 'EC2':
+        if v['cloud'] == 'EC2':
             if u_data_model == 'unixbench/unixbench_userscript_model.dat':
                 try:
                     instance_logs = Table(k)
@@ -104,7 +104,7 @@ def main():
     # Better to execute the benchmark on a category to category basis
     conn = boto.ec2.connect_to_region(region)
     
-    instances = []
+    #instances = []
     #completed = ['t1.micro_paravirtual']
     num_instances = len(instances)
     while 0 < len(instances):
