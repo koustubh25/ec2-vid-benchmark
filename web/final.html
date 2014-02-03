@@ -1,0 +1,2015 @@
+<html>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+
+<script type="text/javascript">
+
+        
+        
+var  chart,chart2,chart3,chart4,chart5,chart6
+    var pass1hp=[], pass2hp=[],pass1mp=[],pass2mp=[],pass1lp=[],pass2lp=[]
+var pass1=[],pass2=[]
+var allname=[], allcosts1=[],allcosts2=[] 
+
+ $.getJSON("records.txt",function(result){ 
+
+   for(var i=0;i<result["Servers"].length;i++)
+{
+
+if(result["Servers"][i]["passno"] == 1 && result["Servers"][i]["Category"] == "High Performance" )
+{
+pass1hp.push(result["Servers"][i])
+
+}
+else if(result["Servers"][i]["passno"] == 1 && result["Servers"][i]["Category"] == "Moderate Performance" )
+{
+pass1mp.push(result["Servers"][i])
+
+}
+else if(result["Servers"][i]["passno"] == 1 && result["Servers"][i]["Category"] == "low Performance" )
+{
+pass1lp.push(result["Servers"][i])
+
+}
+//pass2
+else if(result["Servers"][i]["passno"] == 2 && result["Servers"][i]["Category"] == "High Performance" )
+{
+pass2hp.push(result["Servers"][i])
+}
+else if(result["Servers"][i]["passno"] == 2 && result["Servers"][i]["Category"] == "Moderate Performance" )
+{
+pass2mp.push(result["Servers"][i])
+}
+else if(result["Servers"][i]["passno"] == 2 && result["Servers"][i]["Category"] == "low Performance" )
+{
+pass2lp.push(result["Servers"][i])
+}
+
+}
+
+});
+
+
+ function pressBR(passno)
+ {
+  if (passno ==1)
+  pass1.sort(function(a,b) { return parseFloat(b.bitrate) - parseFloat(a.bitrate) } );
+  else
+	 pass2.sort(function(a,b) { return parseFloat(b.bitrate) - parseFloat(a.bitrate) } );
+
+
+
+for(var i=0;i<pass1.length;i++)
+{
+console.log(pass1[i].fps);
+}
+
+plotGraph();
+  
+ }
+ 
+ 
+  function pressCost(passno)
+ {
+  if (passno ==1)
+    pass1.sort(function(a,b) { return parseFloat(b.cost) - parseFloat(a.cost) } );
+  else
+	pass2.sort(function(a,b) { return parseFloat(b.cost) - parseFloat(a.cost) } );
+
+
+
+for(var i=0;i<pass1.length;i++)
+{
+console.log(pass1[i].cost);
+}
+
+plotGraph();
+  
+ }
+ 
+ 
+function pressActualTime(passno)
+{
+if (passno ==1)
+pass1.sort(dynamicSort("realtime"));
+else
+pass2.sort(dynamicSort("realtime"));
+for(var i=0;i<pass1.length;i++)
+{
+console.log(pass1[i].realtime);
+}
+
+plotGraph();
+
+}
+
+function pressFPS(passno)
+{
+if (passno == 1)
+pass1.sort(function(a,b) { return parseFloat(b.fps) - parseFloat(a.fps) } );
+else
+pass1.sort(function(a,b) { return parseFloat(b.fps) - parseFloat(a.fps) } );
+
+for(var i=0;i<pass1.length;i++)
+{
+console.log(pass1[i].fps);
+}
+
+plotGraph();
+}
+
+
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+
+
+
+function returnStatus(passno,performance)
+{
+if(passno == 1 && performance=="High Performance")
+{
+data=pass1hp
+}
+else if(passno == 1 && performance=="low Performance")
+{
+data=pass1lp
+}
+else if(passno == 1 && performance=="Moderate Performance")
+{
+data=pass1mp
+}
+//pass 2
+else if(passno == 2 && performance=="High Performance")
+{
+data=pass2hp
+}
+else if(passno == 2 && performance=="low Performance")
+{
+data=pass2lp
+}
+else if(passno == 2 && performance=="Moderate Performance")
+{
+data=pass2mp
+}
+return data
+}
+
+
+
+ function getUserTime(passno)
+ {
+
+ var usertime=[];
+data=returnStatus(passno,performance)
+
+
+for(var i=0;i<data.length;i++)
+{
+
+usertime.push(data[i].usertime);
+console.log(usertime[i]);
+}
+
+return usertime;
+ 
+ }
+
+ 
+
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
+
+   
+
+function getNames(passno,performance)
+{
+//alert("koustubh");
+sleep(100)
+var names=[];
+data=returnStatus(passno,performance)
+
+
+for(var i=0;i<data.length;i++)
+{
+
+names.push(data[i].name);
+
+}
+
+return names;
+}
+
+function getBitrate(passno,performance)
+{
+var bitrate=[];
+data=returnStatus(passno,performance)
+
+
+for(var i=0;i<data.length;i++)
+{
+
+bitrate.push(data[i].bitrate);
+}
+
+
+return bitrate;
+}
+
+
+function getActualTime(passno,performance)
+{
+var rtime=[];
+data=returnStatus(passno,performance)
+
+
+for(var i=0;i<data.length;i++)
+{
+
+rtime.push(data[i].realtime);
+console.log(rtime[i])
+}
+
+return rtime;
+}
+
+
+function getCPUTime(passno)
+{
+var cputime=[];
+data=returnStatus(passno,performance)
+
+for(var i=0;i<data.length;i++)
+{
+
+cputime.push(data[i].systime);
+}
+
+return cputime;
+}
+
+
+
+function getFPS(passno)
+{
+var fps=[];
+data=returnStatus(passno,performance)
+
+for(var i=0;i<data.length;i++)
+{
+
+fps.push(data[i].fps);
+
+}
+
+return fps;
+}
+
+
+function getCost(passno,performance)
+{
+
+var cost=[];
+data=returnStatus(passno,performance)
+
+
+for(var i=0;i<data.length;i++)
+{
+t=(parseFloat(data[i].cost)/parseFloat(3600))*(parseFloat(data[i].realtime))
+//t= parseFloat((parseFloat(data[i].cost)/3600)*parseFloat(data[i].realtime)).toFixed(2)
+
+cost.push(t)
+
+
+}
+
+return cost;
+
+}
+
+
+
+
+$(document).ready(function () {
+
+
+
+
+plotGraph();
+
+});
+
+function plotGraph()
+{
+       var chart=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container',
+           	marginTop:50,
+           	marginBottom:350,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass1) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - High Performance Servers'
+            },
+            xAxis: [{
+            
+            
+            categories: getNames(1,"High Performance"),
+            
+                    labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            } 
+            , { // Secondary yAxis
+             
+              tickInterval:2,
+            min:0,
+            max: 5,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass1 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 5000,
+                 
+            tickInterval:4000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+   
+            
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 150,
+                verticalAlign: 'top',
+                y: 0,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(1,"High Performance"),
+               
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            } ,
+            {
+                name: 'Cost($)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(1,"High Performnance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(1,"High Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(1,"High Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+             
+           
+            
+            
+            
+            ]
+        });
+         
+          
+          var chart2=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container2',
+           	marginTop:50,
+           	marginBottom:350,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass1) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - Moderate Performance Servers)'
+            },
+            xAxis: [{
+            
+            
+                categories: getNames(1,"Moderate Performance"),
+                    labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            }, { // Secondary yAxis
+             
+              tickInterval:2,
+           
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass1 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 5000,
+                 
+            tickInterval:5000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+   
+            
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 130,
+                verticalAlign: 'top',
+                y: 20,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(1,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            },
+            {
+                name: 'Cost ($)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(1,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(1,"Moderate Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(1,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+            
+            
+            
+            
+            ]
+        });
+           
+         
+       var chart3=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container3',
+           	marginTop:50,
+           	marginBottom:350,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass1) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - Low Performance Servers'
+            },
+            xAxis: [{
+            
+            
+                categories: getNames(1,"low Performance"),
+                   labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            }, { // Secondary yAxis
+          
+              tickInterval:2,
+           
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass1 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 40000,
+                 
+            tickInterval:5000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+   
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 130,
+                verticalAlign: 'top',
+                y: 30,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(1,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            },
+            {
+                name: 'Cost ($)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(1,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(1,"low Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(1,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+            
+          
+            
+            ]
+        });
+           
+           
+           var chart4=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container4',
+           	marginTop:50,
+           	marginBottom:350,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass2) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - High Performance Servers)'
+            },
+            xAxis: [{
+            
+            
+                categories: getNames(2,"High Performance"),
+                   labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            }, { // Secondary yAxis
+              
+              tickInterval:2,
+           
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass2 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 4000,
+                 
+            tickInterval:5000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+   
+            
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 130,
+                verticalAlign: 'top',
+                y: 30,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(2,"High Performance"),
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            },
+            {
+                name: 'Cost ($/hr)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(2,"High Performance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(2,"High Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(2,"High Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+            
+            ]
+        });
+         
+            
+            
+            var chart5=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container5',
+           	marginTop:50,
+           	marginBottom:350,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass2) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - Moderate Performance Servers)'
+            },
+            xAxis: [{
+            
+            
+                categories: getNames(2,"Moderate Performance"),
+                    labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            }, { // Secondary yAxis
+              
+              tickInterval:2,
+           
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass2 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 3000,
+                 
+            tickInterval:5000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+            
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 230,
+                verticalAlign: 'top',
+                y: 30,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(2,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            },
+            {
+                name: 'Cost ($/hr)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(2,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(2,"Moderate Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(2,"Moderate Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+            
+            ]
+        });
+           
+         
+       var chart6=new Highcharts.Chart({
+       
+            chart: {
+       	         zoomType: 'xy',
+           	renderTo: 'container6',
+           	marginTop:50,
+           	marginBottom:450,
+           	borderColor: '#0A2229',
+        	borderWidth: 4,
+        	borderRadius: 10,
+        	alignTicks: false,	
+           	
+            },
+           
+            title: {
+                text: 'Encoding Stats (Pass2) '
+            },
+            subtitle: {
+                text: 'AWS/Rackspace Severs - Low Performance Servers)'
+            },
+            xAxis: [{
+            
+            
+                categories: getNames(2,"low Performance"),
+               labels: {
+                 formatter: function () {
+        if (/^\d/.test(this.value)) {
+            return '<b><span style="fill:#088A08 ;font-weight: bold;font-size: 8pt"> ' + this.value + '</span></b>';
+        } else {
+            return '<b><span style="fill: #210B61 ;font-weight: bold;font-size: 9pt"> ' + this.value + '</span></b>';
+        }
+    },
+                    rotation: -55,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                },
+                   offset: 0,
+                top: 530,
+                height: 80,  
+            }],
+            yAxis: [{ // Primary yAxis
+                labels: {
+               
+                    formatter: function() {
+                        return this.value +' kbps';
+                    },
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                title: {
+                    text: 'Encoding Bit Rate',
+                    style: {
+                        color: '#89A54E'
+                    }
+                },
+                opposite: true,
+                height: 300, 
+    
+            }, { // Secondary yAxis
+           
+              tickInterval:2,
+           
+                gridLineWidth: 0,
+                title: {
+                    text: 'Cost of Encoding Job - Pass2 ($)',
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' $';
+                    },
+                    style: {
+                        color: '#4572A7'
+                    }
+                },
+    height: 300,
+            }, { // Tertiary yAxis
+             min: 0,
+            max: 50,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Encoding Frame Rate(FPS)',
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value +' fps';
+                    },
+                    style: {
+                        color: '#AA4643'
+                    }
+                },
+                opposite: true,
+                height: 300,
+            },
+            // Real time axis
+            { 
+            min: 0,
+
+               max: 40000,
+                 
+            tickInterval:5000,
+                gridLineWidth: 0,
+                title: {
+                    text: 'Time elapsed',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                labels: {
+                
+                    formatter: function() {
+                        return this.value +' s';
+                    },
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+               offset: 0,
+                top: 400,
+                height: 200,  
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'Rackspace',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+             labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }, { // Tertiary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: 'AWS',
+                    style: {
+                        color: '#B45F04'
+                    }
+                },
+                min:0,
+              labels: {
+                enabled: false
+            },
+            title: {
+                text: null
+            },
+                opposite: true
+            }
+            
+            ],
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',	
+                x: 220,
+                verticalAlign: 'top',
+                y: 30,
+                floating: true,
+                backgroundColor: '#FFFFFF'
+            },
+            series: [
+            {
+                name: 'Bitrate',
+            
+                color: '#89A54E',
+                type: 'line',   
+               
+                data: getBitrate(2,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' kbps'
+                }
+            },
+            {
+                name: 'Cost ($/hr)',
+                color: '#4572A7',
+                type: 'column',
+                yAxis: 1,
+                data: getCost(2,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' $'
+                }
+    
+            }, {
+                name: 'Encoding Frame Rate(FPS)',
+                marker : {
+					enabled : true,
+					radius : 3
+				},
+                type: 'line',
+                color: '#AA4643',
+                yAxis: 2,
+                data: getFPS(2,"low Performance"),
+               
+                
+                tooltip: {
+                    valueSuffix: ' FPS'
+                }
+    
+            }, 
+            {
+                name: 'Real time',
+                color: '#B45F04',
+                type: 'line',   
+                yAxis: 3,
+                dashStyle: 'shortdot',
+                data: getActualTime(2,"low Performance"),
+                tooltip: {
+                    valueSuffix: ' s'
+                }
+            }, {
+                name: 'Rackspace Instance',
+                type: 'spline',
+                
+               
+                color: '#088A08',
+                yAxis: 4,
+                lineWidth: 3,
+              
+                  marker: {
+                    enabled: false
+                },
+              
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }, {
+                name: 'AWS Instance',
+                type: 'spline',
+              
+                color: '#210B61',
+                yAxis: 5,
+                lineWidth: 3,
+                 marker: {
+                    enabled: false
+                },
+              
+               
+               
+                
+                tooltip: {
+                    valueSuffix: ''
+                }
+    
+            }
+            
+            ]
+        });
+        
+        
+       
+    
+           
+           
+   chart.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+                   
+            
+             chart2.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+           chart3.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+         chart4.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+           chart5.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+           chart6.chartBackground.css(
+        {
+            color: '#E0ECF8',
+        });
+        
+          
+   
+  }
+</script>
+
+<center><u><h1> x264 HD Benchmarking Results ( RAW .264 file -> H.264 ) </h1></u></center>
+
+
+<center><b>Scatter Plot for the 68 Instances based on the FPS, Encoding Rate and Execution Time (Pass 1)</b></center>
+<center><img src="scatterPlot1.png"></center>
+
+
+<br><br><br>
+<center><b>Scatter Plot for the 68 Instances based on the FPS, Encoding Rate and Execution Time (Pass 2)</b></center>
+<center><img src="scatterPlot2.png"></center>
+
+<div align="left">
+ 
+
+
+
+</div>
+
+<br>
+<h1><center>Benchmarking Performance Results (Pass1)</center> </h1>
+<div id="container" style="min-width: 100px; height: 850px; margin: 0 auto"></div>
+<div id="container2" style="min-width: 310px; height: 850px; margin: 0 auto"></div>
+<div id="container3" style="min-width: 310px; height: 850px; margin: 0 auto"></div>
+<br><br><br>
+<h1><center>Benchmarking Performance Results (Pass2)</center></h1>
+
+<div align="left">
+
+
+
+
+</div>
+<div id="container4" style="min-width: 310px; height: 850px; margin: 0 auto"></div>
+<div id="container5" style="min-width: 100px; height: 850px; margin: 0 auto"></div>
+<div id="container6" style="min-width: 310px; height: 850px; margin: 0 auto"></div>
+<div id="container7" style="min-width: 310px; height: 800px; margin: 0 auto"></div>
+
+
+
+</html>
