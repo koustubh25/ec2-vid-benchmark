@@ -480,7 +480,7 @@ function plotBest(parallel, test, sorter, bestLimit) {
 	var std = Math.sqrt(varianceSum / (means.length - 1));
 	means = [];
     mean = parseFloat(mean.toFixed(2));
-	for ( i = 0; i < 30; i++)
+	for ( i = 0; i < bestLimit; i++)
 		means.push(mean);
 
 	var zscores = logs({
@@ -800,12 +800,13 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
 	//e.relatedTarget; // previous tab
 });
 
-$('#bestN').bind("enterKey", function(e) {
-    currentBestLimit = parseInt();
-});
-$('#bestN').keyup(function(e) {
-    if(e.KeyCOde == 13) {
-        $(this).trigger("enterKey");
+$('#bestNform').keypress(function(e) {
+    if(e.which == 13) {
+        currentBestLimit = parseInt($('#bestNform').prop('value'));
+        if (currentBestLimit === parseInt(currentBestLimit))
+		    plotBest(currentParallel, currentTest, currentSorter, currentBestLimit);
+        else
+            currentBestLimit = 30;
     }
 });
 
